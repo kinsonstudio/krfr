@@ -1,8 +1,8 @@
 {
   "app": "krfr",
-  "latest_version": "1.0.6",
-  "version_code": 7,
+  "latest_version": "1.0.7",
+  "version_code": 8,
   "update_url": "https://taiai.asia/krfr.apk",
-  "release_date": "2026-10-15",
-  "changelog": "v1.0.6：还原后运营商名称/国家地区按真实 SIM（MCC/MNC）解析，不再残留旧覆盖名（3HK/au by KDDI）"
+  "release_date": "2026-10-16",
+  "changelog": "v1.0.7：修复还原后仍显示旧覆盖运营商名——名称按真实 SIM 的 MCC/MNC（Shizuku 直读）解析，不再读残留 SubInfo 名"
 }

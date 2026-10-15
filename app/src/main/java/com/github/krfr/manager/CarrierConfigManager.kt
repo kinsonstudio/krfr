@@ -3,6 +3,7 @@ package com.github.krfr.manager
 // 单 APK：Shizuku 直连 CarrierConfig，受限时委托 shell 权限回退；不用 am instrument shell（会 force-stop 闪退）。
 
 import android.content.Context
+import android.os.IBinder
 import android.os.PersistableBundle
 import android.provider.Settings
 import android.telephony.SubscriptionManager
@@ -11,6 +12,7 @@ import android.telephony.CarrierConfigManager as AndroidCarrierConfigManager
 import com.github.krfr.model.SimCardInfo
 import org.lsposed.hiddenapibypass.HiddenApiBypass
 import rikka.shizuku.Shizuku
+import rikka.shizuku.ShizukuBinderWrapper
 import java.io.InputStream
 
 object CarrierConfigManager {
@@ -670,6 +672,9 @@ object CarrierConfigManager {
 
         // 2. 真实 SIM 归属运营商：MCC/MNC 是 SIM 物理数据，覆盖还原后依然准确。
         //    还原后 SubInfo 显示名可能残留旧覆盖名，因此优先用 MCC/MNC 解析真实名称。
+        //    ISub 经 Shizuku 反射读取（无需电话权限，SimStatusReader 同款已验证可读到真实值）
+        getRealMccMncViaISub(subId)?.let { resolveCarrierNameByMccMnc(it) }?.let { return it }
+
         val subscriptionManager =
             context.getSystemService(Context.TELEPHONY_SUBSCRIPTION_SERVICE) as? SubscriptionManager
         val subscriptionInfo = subscriptionManager?.let { manager ->
@@ -722,6 +727,44 @@ object CarrierConfigManager {
                 operatorNumeric.startsWith("46008") -> "中国移动"
             else -> null
         }
+    }
+
+    /**
+     * 通过 ISub（Shizuku shell 身份反射）读取真实 MCC/MNC。
+     * SIM 物理数据，不受 SubInfo 显示名覆盖影响；与 SimStatusReader 同款读取方式（已验证可读 460/15）。
+     */
+    private fun getRealMccMncViaISub(subId: Int): String? {
+        return runCatching {
+            val binder = Class.forName("android.os.ServiceManager")
+                .getMethod("getService", String::class.java)
+                .invoke(null, "isub") as IBinder
+            val stubClass = Class.forName("com.android.internal.telephony.ISub\$Stub")
+            val iSub = stubClass.getMethod("asInterface", IBinder::class.java)
+                .invoke(null, ShizukuBinderWrapper(binder))
+            val method = listOf(3, 2, 1).mapNotNull { p ->
+                iSub.javaClass.methods.firstOrNull {
+                    it.name == "getActiveSubscriptionInfo" && it.parameterTypes.size == p
+                }
+            }.firstOrNull() ?: return null
+            val info = when (method.parameterTypes.size) {
+                3 -> method.invoke(iSub, subId, "com.android.shell", null)
+                2 -> method.invoke(iSub, subId, "com.android.shell")
+                else -> method.invoke(iSub, subId)
+            } ?: return null
+            val mcc = reflectIntSafe(info, "getMcc")
+            val mnc = reflectIntSafe(info, "getMnc")
+            if (mcc != null && mnc != null && mcc > 0 && mnc > 0) {
+                String.format("%03d%02d", mcc, mnc)
+            } else null
+        }.getOrNull()
+    }
+
+    private fun reflectIntSafe(target: Any, methodName: String): Int? {
+        return runCatching {
+            target.javaClass.methods.firstOrNull {
+                it.name == methodName && it.parameterTypes.isEmpty()
+            }?.invoke(target) as? Int
+        }.getOrNull()
     }
 
     private fun runShellCommand(command: String, timeoutMs: Long = 5_000L): String {
