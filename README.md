@@ -30,7 +30,7 @@
   - 命令行构建：
 
 ```bash
-cd /Users/cai/Doubao/chats/2026-10-15/new-chat-1/krfr
+cd krfr
 ANDROID_HOME=$HOME/Library/Android/sdk JAVA_HOME=$HOME/jdk21/Contents/Home ./gradlew :app:assembleDebug
 ```
 
