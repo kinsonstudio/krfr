@@ -18,6 +18,18 @@ object SimStatusReader {
     // 反射方法缓存：方法查找（methods.firstOrNull 遍历）开销大，缓存后显著提速
     private val methodCache = java.util.concurrent.ConcurrentHashMap<String, java.lang.reflect.Method>()
 
+    // 服务实例缓存：同一进程内 binder 可复用，避免每次读取重复 getService + asInterface
+    @Volatile
+    private var cachedITelephony: Any? = null
+
+    @Volatile
+    private var cachedISub: Any? = null
+
+    fun resetServiceCache() {
+        cachedITelephony = null
+        cachedISub = null
+    }
+
     private fun findMethod(
         target: Any,
         name: String,
@@ -38,17 +50,23 @@ object SimStatusReader {
     }
 
     fun readAll(context: android.content.Context, baseCards: List<SimCardInfo>): List<SimStatusInfo> {
-        if (baseCards.size <= 1) return baseCards.map { readOne(context, it) }
-        // 双卡并行读取，互不阻塞
-        val executor = java.util.concurrent.Executors.newFixedThreadPool(minOf(baseCards.size, 4))
-        return try {
-            val futures = baseCards.map { card ->
-                executor.submit<SimStatusInfo> { readOne(context, card) }
+        val startedAt = System.currentTimeMillis()
+        val result = if (baseCards.size <= 1) {
+            baseCards.map { readOne(context, it) }
+        } else {
+            // 双卡并行读取，互不阻塞
+            val executor = java.util.concurrent.Executors.newFixedThreadPool(minOf(baseCards.size, 4))
+            try {
+                val futures = baseCards.map { card ->
+                    executor.submit<SimStatusInfo> { readOne(context, card) }
+                }
+                futures.map { it.get() }
+            } finally {
+                executor.shutdown()
             }
-            futures.map { it.get() }
-        } finally {
-            executor.shutdown()
         }
+        LogStore.i("读取 SIM 状态完成 用时 ${System.currentTimeMillis() - startedAt}ms 卡数=${result.size}")
+        return result
     }
 
     private fun readOne(context: android.content.Context, card: SimCardInfo): SimStatusInfo {
@@ -83,6 +101,7 @@ object SimStatusReader {
 
     /** 通过 ISub + shell 身份获取 SubscriptionInfo（权限检查在 binder 端完成） */
     private fun getSubscriptionInfo(subId: Int): Any? {
+        cachedISub?.let { return readFromISub(it, subId) }
         return runCatching {
             val binder = Class.forName("android.os.ServiceManager")
                 .getMethod("getService", String::class.java)
@@ -90,6 +109,13 @@ object SimStatusReader {
             val stubClass = Class.forName("com.android.internal.telephony.ISub\$Stub")
             val iSub = stubClass.getMethod("asInterface", IBinder::class.java)
                 .invoke(null, ShizukuBinderWrapper(binder))
+            cachedISub = iSub
+            readFromISub(iSub, subId)
+        }.getOrNull()
+    }
+
+    private fun readFromISub(iSub: Any, subId: Int): Any? {
+        return runCatching {
             val method3 = findMethod(iSub, "getActiveSubscriptionInfo", 3)
                 ?: findMethod(iSub, "getActiveSubscriptionInfo", 2)
                 ?: findMethod(iSub, "getActiveSubscriptionInfo", 1)
@@ -103,13 +129,16 @@ object SimStatusReader {
     }
 
     private fun getITelephony(): Any? {
+        cachedITelephony?.let { return it }
         return runCatching {
             val binder = Class.forName("android.os.ServiceManager")
                 .getMethod("getService", String::class.java)
                 .invoke(null, "phone") as IBinder
             val stubClass = Class.forName("com.android.internal.telephony.ITelephony\$Stub")
-            stubClass.getMethod("asInterface", IBinder::class.java)
+            val iTelephony = stubClass.getMethod("asInterface", IBinder::class.java)
                 .invoke(null, ShizukuBinderWrapper(binder))
+            cachedITelephony = iTelephony
+            iTelephony
         }.getOrNull()
     }
 

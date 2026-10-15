@@ -1,6 +1,8 @@
 package com.github.krfr.ui.components
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
@@ -26,11 +28,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -38,6 +43,7 @@ import androidx.compose.ui.unit.sp
 import com.github.krfr.ui.theme.KrfrAdaptive
 import com.github.krfr.ui.theme.KrfrCardShape
 import com.github.krfr.ui.theme.KrfrPill
+import kotlinx.coroutines.launch
 import com.github.krfr.ui.theme.clickableNoIndication
 
 // 页面顶部渐变横幅标题区，可选刷新按钮
@@ -103,6 +109,8 @@ fun PageHeader(
                 )
             }
             if (onRefresh != null) {
+                val rotation = remember { Animatable(0f) }
+                val scope = rememberCoroutineScope()
                 Box(
                     modifier = Modifier
                         .size(38.dp)
@@ -110,12 +118,22 @@ fun PageHeader(
                         .background(Color.White.copy(alpha = 0.16f)),
                     contentAlignment = Alignment.Center
                 ) {
-                    IconButton(onClick = onRefresh, modifier = Modifier.size(38.dp)) {
+                    IconButton(
+                        onClick = {
+                            scope.launch {
+                                rotation.animateTo(rotation.value + 360f, tween(450))
+                            }
+                            onRefresh()
+                        },
+                        modifier = Modifier.size(38.dp)
+                    ) {
                         Icon(
                             Icons.Default.Refresh,
                             contentDescription = "刷新",
                             tint = Color.White,
-                            modifier = Modifier.size(20.dp)
+                            modifier = Modifier
+                                .size(20.dp)
+                                .graphicsLayer { rotationZ = rotation.value }
                         )
                     }
                 }

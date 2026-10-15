@@ -2,11 +2,14 @@ package com.github.krfr.ui
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -33,6 +36,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -75,14 +79,23 @@ fun MainScaffold(
             ) {
                 MainTab.entries.forEach { tab ->
                     val selected = selectedTab == tab
+                    val iconScale by animateFloatAsState(
+                        targetValue = if (selected) 1.08f else 0.88f,
+                        animationSpec = tween(220),
+                        label = "tab-icon-scale"
+                    )
                     NavigationBarItem(
                         selected = selected,
                         onClick = { selectedTab = tab },
                         icon = {
-                            Icon(
-                                imageVector = if (selected) tab.selectedIcon else tab.unselectedIcon,
-                                contentDescription = tab.label
-                            )
+                            Box(
+                                modifier = Modifier.scale(iconScale)
+                            ) {
+                                Icon(
+                                    imageVector = if (selected) tab.selectedIcon else tab.unselectedIcon,
+                                    contentDescription = tab.label
+                                )
+                            }
                         },
                         label = {
                             Text(
@@ -110,8 +123,18 @@ fun MainScaffold(
             AnimatedContent(
                 targetState = selectedTab,
                 transitionSpec = {
-                    (fadeIn(tween(220)) + slideInVertically(tween(220)) { it / 40 })
-                        .togetherWith(fadeOut(tween(140)) + slideOutVertically(tween(140)) { -it / 40 })
+                    // 按切换方向做横向滑动 + 缩放 + 淡入淡出，比纯淡入更顺滑
+                    val direction = if (targetState.ordinal > initialState.ordinal) 1 else -1
+                    (
+                        slideInHorizontally(tween(280)) { direction * it / 6 } +
+                            fadeIn(tween(280)) +
+                            scaleIn(initialScale = 0.96f, animationSpec = tween(280))
+                        )
+                        .togetherWith(
+                            slideOutHorizontally(tween(200)) { -direction * it / 6 } +
+                                fadeOut(tween(150)) +
+                                scaleOut(targetScale = 0.96f, animationSpec = tween(200))
+                        )
                 },
                 label = "main-tab"
             ) { tab ->

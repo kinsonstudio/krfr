@@ -31,6 +31,7 @@ import com.github.krfr.ui.theme.KrfrAdaptive
 import com.github.krfr.ui.theme.KrfrCardShape
 import com.github.krfr.ui.theme.KrfrPill
 import com.github.krfr.ui.theme.clickableNoIndication
+import com.github.krfr.ui.theme.clickablePressScale
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -87,6 +88,7 @@ fun QuickPresetScreen() {
             applyingId = preset.id
             try {
                 val result = withContext(Dispatchers.IO) {
+                    OperationState.markRunning()
                     CarrierConfigManager.setCarrierConfig(
                         appContext,
                         simCard.subId,
@@ -102,7 +104,11 @@ fun QuickPresetScreen() {
                 }
             } catch (e: Exception) {
                 statusIsError = true
-                statusMessage = "应用失败：${e.message?.lineSequence()?.firstOrNull()?.take(120) ?: "未知错误"}"
+                statusMessage = if (OperationState.wasCancelled()) {
+                    "操作已被强制终止"
+                } else {
+                    "应用失败：${e.message?.lineSequence()?.firstOrNull()?.take(120) ?: "未知错误"}"
+                }
             } finally {
                 OperationState.end()
                 isApplying = false
@@ -236,7 +242,7 @@ private fun SimChipSelector(
                         color = if (selected) KrfrAdaptive.link() else MaterialTheme.colorScheme.outlineVariant,
                         shape = KrfrPill
                     )
-                    .clickableNoIndication(onClick = { onSelected(simCard) })
+                    .clickablePressScale(onClick = { onSelected(simCard) })
                     .padding(horizontal = 14.dp, vertical = 10.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -280,7 +286,7 @@ private fun QuickPresetRow(
         Row(
             modifier = Modifier
                 .clip(KrfrCardShape)
-                .clickableNoIndication(onClick = onClick)
+                .clickablePressScale(onClick = onClick)
                 .padding(horizontal = 14.dp, vertical = 14.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp)

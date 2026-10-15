@@ -24,6 +24,8 @@ internal object SubscriptionHiddenApi {
     private const val OPLUS_TELEPHONY_INTERNAL = "com.android.internal.telephony.IOplusTelephonyInternalExt"
     private const val ISUB_EXT = "com.oplus.telephony.ISubExt"
     private val RETRY_DELAYS_MS = longArrayOf(0L, 400L, 1200L, 2500L, 5000L)
+    // 还原/清除角标走短重试：配置本身已被确认清空，无需等满 9s
+    private val RESTORE_RETRY_DELAYS_MS = longArrayOf(0L, 400L, 1200L)
     private val syncShellIdentity = ThreadLocal.withInitial { false }
 
     fun syncAfterOverride(context: Context, subId: Int, bundle: PersistableBundle?) {
@@ -72,14 +74,15 @@ internal object SubscriptionHiddenApi {
         subId: Int,
         carrierName: String?,
         blocking: Boolean,
-        useShellIdentity: Boolean
+        useShellIdentity: Boolean,
+        retryDelays: LongArray = if (carrierName == null) RESTORE_RETRY_DELAYS_MS else RETRY_DELAYS_MS
     ) {
         val appContext = context.applicationContext
         val worker = Runnable {
             syncShellIdentity.set(useShellIdentity)
             try {
                 Log.i(TAG, "sync start subId=$subId expected=$carrierName shellIdentity=$useShellIdentity")
-                RETRY_DELAYS_MS.forEachIndexed { attempt, delayMs ->
+                retryDelays.forEachIndexed { attempt, delayMs ->
                     if (delayMs > 0) {
                         Thread.sleep(delayMs)
                     }

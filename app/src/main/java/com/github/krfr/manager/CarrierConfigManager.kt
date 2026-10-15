@@ -44,6 +44,7 @@ object CarrierConfigManager {
     }
 
     fun getSimCards(context: Context): List<SimCardInfo> {
+        val startedAt = System.currentTimeMillis()
         runCatching { rememberLiveOverrides(context, getCurrentConfigsByDumpsys()) }
         runCatching { ensureClearedAfterReboot(context) }
         runCatching { scrubOrphanBadges(context) }
@@ -70,6 +71,7 @@ object CarrierConfigManager {
             simCards.add(SimCardInfo(slot, subId, carrierName, config))
         }
 
+        LogStore.i("读取 SIM 卡完成 用时 ${System.currentTimeMillis() - startedAt}ms 卡数=${simCards.size}")
         return simCards
     }
 
@@ -98,25 +100,36 @@ object CarrierConfigManager {
     }
 
     /**
-     * 对全部 SIM 执行还原：清覆盖配置，并阻塞清除状态栏品牌/SPN 角标。
+     * 对全部 SIM 执行还原。两张卡并行处理，每张卡只走一遍完整流程
+     * （resetCarrierConfig 内部已含覆盖清除 + SPN 同步 + 生效确认），
+     * 不再叠加第二/第三段重复的阻塞同步，避免还原卡几十秒。
      */
     fun restoreAllToUnset(context: Context) {
         if (!ShizukuHelper.hasPermission()) {
             throw IllegalStateException("Shizuku 未启动或未授权")
         }
-        for (slotIndex in 0..1) {
-            val subId = getSubIdForSlotViaApi(context, slotIndex) ?: continue
-            runCatching { resetCarrierConfig(context, subId) }
-            runCatching {
-                DelegatedCarrierConfigOverride.runWithShellPermission {
-                    SubscriptionHiddenApi.syncAfterRestoreBlocking(context, subId)
+        val startedAt = System.currentTimeMillis()
+        val executor = java.util.concurrent.Executors.newFixedThreadPool(2)
+        val futures = (0..1).mapNotNull { slotIndex ->
+            val subId = getSubIdForSlotViaApi(context, slotIndex) ?: return@mapNotNull null
+            executor.submit<Unit> { resetCarrierConfig(context, subId) }
+        }
+        var failures = 0
+        try {
+            futures.forEach { future ->
+                runCatching { future.get() }.onFailure {
+                    failures++
+                    LogStore.e("还原失败: ${it.message.orEmpty()}")
                 }
             }
-            runCatching {
-                SubscriptionHiddenApi.clearBrandThoroughly(context, subId)
-            }
+        } finally {
+            executor.shutdown()
         }
         invalidateReadCaches()
+        LogStore.i("一键还原全部完成 用时 ${System.currentTimeMillis() - startedAt}ms 卡数=${futures.size}")
+        if (failures > 0) {
+            throw IllegalStateException("有 $failures 张卡还原失败，请查看运行日志")
+        }
     }
 
     private fun slotIndexForSubId(context: Context, subId: Int): Int? {
@@ -240,6 +253,8 @@ object CarrierConfigManager {
         countryCode: String?,
         carrierName: String? = null
     ): CarrierConfigOperationResult {
+        val startedAt = System.currentTimeMillis()
+        LogStore.i("设置配置 subId=$subId 国家码=${countryCode ?: "-"} 运营商=${carrierName ?: "-"}")
         val bundle = PersistableBundle()
 
         if (!countryCode.isNullOrEmpty() && countryCode.length == 2) {
@@ -259,13 +274,16 @@ object CarrierConfigManager {
         overrideCarrierConfig(context, subId, bundle)
         rememberSavedOverride(context, subId, countryCode, carrierName)
         invalidateReadCaches()
+        LogStore.i("已保存 subId=$subId 国家码=${countryCode.orEmpty()} 运营商=${carrierName.orEmpty()}")
         return CarrierConfigOperationResult()
     }
 
     fun resetCarrierConfig(context: Context, subId: Int): CarrierConfigOperationResult {
+        val startedAt = System.currentTimeMillis()
         overrideCarrierConfig(context, subId, null)
         clearSavedOverride(context, subId)
         invalidateReadCaches()
+        LogStore.i("已还原 subId=$subId 用时 ${System.currentTimeMillis() - startedAt}ms")
         return CarrierConfigOperationResult()
     }
 
@@ -281,7 +299,8 @@ object CarrierConfigManager {
         try {
             TelephonyHiddenApi.overrideConfig(subId, bundle, persistent = false)
             syncSubscriptionAfterOverride(context, subId, bundle)
-            waitUntilConfigMatches(context, subId, bundle)
+            // 还原（null）只等 2s，设置等 3s；避免配置生效确认把保存/还原拖慢
+            waitUntilConfigMatches(context, subId, bundle, timeoutMs = if (bundle == null) 2_000L else 3_000L)
             return false
         } catch (error: SecurityException) {
             if (!error.message.orEmpty().contains("cannot be invoked by shell", ignoreCase = true)) {
@@ -304,7 +323,7 @@ object CarrierConfigManager {
         }
         if (delegatedError.isSuccess) {
             syncSubscriptionAfterOverride(context, subId, bundle)
-            waitUntilConfigMatches(context, subId, bundle)
+            waitUntilConfigMatches(context, subId, bundle, timeoutMs = if (bundle == null) 2_000L else 3_000L)
             return false
         }
 
@@ -648,22 +667,25 @@ object CarrierConfigManager {
         }
     }
 
-    private fun runShellCommand(command: String): String {
+    private fun runShellCommand(command: String, timeoutMs: Long = 5_000L): String {
         val shellProcess = newShizukuProcess(arrayOf("sh", "-c", command))
         val stdout = StringBuilder()
         val stderr = StringBuilder()
         val stdoutThread = readAsync(shellProcess.inputStream, stdout)
         val stderrThread = readAsync(shellProcess.errorStream, stderr)
-        val exitCode = shellProcess.waitFor()
+        if (!shellProcess.waitFor(timeoutMs, java.util.concurrent.TimeUnit.MILLISECONDS)) {
+            shellProcess.destroy()
+            throw IllegalStateException("执行 shell 命令超时(>${timeoutMs}ms): $command")
+        }
         stdoutThread.join()
         stderrThread.join()
 
-        if (exitCode != 0) {
+        if (shellProcess.exitValue() != 0) {
             throw IllegalStateException(
                 listOf(stdout.toString(), stderr.toString())
                     .filter { it.isNotBlank() }
                     .joinToString("\n")
-                    .ifBlank { "执行 shell 命令失败，退出码: $exitCode" }
+                    .ifBlank { "执行 shell 命令失败，退出码: ${shellProcess.exitValue()}" }
             )
         }
 

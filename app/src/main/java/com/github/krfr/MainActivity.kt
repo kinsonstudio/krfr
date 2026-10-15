@@ -11,6 +11,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.github.krfr.data.SettingsStore
 import com.github.krfr.manager.CarrierConfigManager
+import com.github.krfr.manager.LogStore
 import com.github.krfr.manager.OperationState
 import com.github.krfr.manager.ShizukuHelper
 import com.github.krfr.ui.MainScaffold
@@ -64,6 +65,7 @@ class MainActivity : ComponentActivity() {
         HiddenApiBypass.addHiddenApiExemptions("I")
 
         themeMode = SettingsStore.readThemeMode(this)
+        LogStore.restore(applicationContext)
 
         runCatching {
             Shizuku.addRequestPermissionResultListener(permissionListener)

@@ -53,6 +53,7 @@ import com.github.krfr.ui.theme.KrfrCardShape
 import com.github.krfr.ui.theme.KrfrPill
 import com.github.krfr.ui.theme.KrfrSelectShape
 import com.github.krfr.ui.theme.clickableNoIndication
+import com.github.krfr.ui.theme.clickablePressScale
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -223,6 +224,7 @@ fun ConfigScreen() {
                                 activeAction = "resetAll"
                                 try {
                                     withContext(Dispatchers.IO) {
+                                        OperationState.markRunning()
                                         CarrierConfigManager.restoreAllToUnset(appContext)
                                     }
                                     statusIsError = false
@@ -236,7 +238,11 @@ fun ConfigScreen() {
                                     customCountryCode = ""
                                 } catch (e: Exception) {
                                     statusIsError = true
-                                    statusMessage = "全部还原失败: ${formatErrorMessage(e)}"
+                                    statusMessage = if (OperationState.wasCancelled()) {
+                                        "操作已被强制终止"
+                                    } else {
+                                        "全部还原失败: ${formatErrorMessage(e)}"
+                                    }
                                 } finally {
                                     OperationState.end()
                                     isApplyingConfig = false
@@ -348,6 +354,7 @@ fun ConfigScreen() {
                         activeAction = "reset"
                         try {
                             val result = withContext(Dispatchers.IO) {
+                                OperationState.markRunning()
                                 CarrierConfigManager.resetCarrierConfig(appContext, simCard.subId)
                             }
                             statusIsError = false
@@ -361,7 +368,11 @@ fun ConfigScreen() {
                             customCountryCode = ""
                         } catch (e: Exception) {
                             statusIsError = true
-                            statusMessage = "还原失败: ${formatErrorMessage(e)}"
+                            statusMessage = if (OperationState.wasCancelled()) {
+                                "操作已被强制终止"
+                            } else {
+                                "还原失败: ${formatErrorMessage(e)}"
+                            }
                         } finally {
                             OperationState.end()
                             isApplyingConfig = false
@@ -388,6 +399,7 @@ fun ConfigScreen() {
                         activeAction = "save"
                         try {
                             val result = withContext(Dispatchers.IO) {
+                                OperationState.markRunning()
                                 CarrierConfigManager.setCarrierConfig(
                                     appContext,
                                     simCard.subId,
@@ -401,7 +413,11 @@ fun ConfigScreen() {
                             refreshSimCards()
                         } catch (e: Exception) {
                             statusIsError = true
-                            statusMessage = "保存失败: ${formatErrorMessage(e)}"
+                            statusMessage = if (OperationState.wasCancelled()) {
+                                "操作已被强制终止"
+                            } else {
+                                "保存失败: ${formatErrorMessage(e)}"
+                            }
                         } finally {
                             OperationState.end()
                             isApplyingConfig = false
@@ -812,7 +828,7 @@ private fun SelectField(
                 color = if (expanded) KrfrAdaptive.link() else MaterialTheme.colorScheme.outlineVariant,
                 shape = KrfrSelectShape
             )
-            .clickableNoIndication(onClick = onClick)
+            .clickablePressScale(onClick = onClick)
             .padding(horizontal = 14.dp, vertical = 14.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -1011,7 +1027,7 @@ private fun ResetAllButton(
         Row(
             modifier = Modifier
                 .clip(KrfrCardShape)
-                .clickableNoIndication(onClick = onResetAll)
+                .clickablePressScale(onClick = onResetAll)
                 .padding(horizontal = 14.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp)

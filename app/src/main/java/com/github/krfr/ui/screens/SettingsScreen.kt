@@ -8,18 +8,24 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Upload
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Divider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -32,6 +38,8 @@ import com.github.krfr.BuildConfig
 import com.github.krfr.manager.AppUpdateManager
 import com.github.krfr.manager.BackupManager
 import com.github.krfr.manager.CarrierConfigManager
+import com.github.krfr.manager.LogStore
+import com.github.krfr.manager.OperationState
 import com.github.krfr.manager.toSimCardsUserMessage
 import com.github.krfr.ui.HongguoStyleUpdateDialog
 import com.github.krfr.ui.components.PageHeader
@@ -62,6 +70,8 @@ fun SettingsScreen(
     var isBusy by remember { mutableStateOf(false) }
     var isCheckingUpdate by remember { mutableStateOf(false) }
     var updateMessage by remember { mutableStateOf<String?>(null) }
+    var showLogDialog by remember { mutableStateOf(false) }
+    var logVersion by remember { mutableStateOf(0) }
     val currentVersion = remember {
         runCatching {
             context.packageManager.getPackageInfo(context.packageName, 0).versionName
@@ -107,6 +117,7 @@ fun SettingsScreen(
                     BackupManager.parseJson(json)
                 }
                 withContext(Dispatchers.IO) {
+                    OperationState.markRunning()
                     BackupManager.applyBackup(appContext, slots)
                 }
             }.onSuccess { count ->
@@ -114,7 +125,11 @@ fun SettingsScreen(
                 statusMessage = "恢复完成，已应用 $count 个卡槽"
             }.onFailure {
                 statusIsError = true
-                statusMessage = "恢复失败：${it.message ?: "文件无效"}".take(200)
+                statusMessage = if (OperationState.wasCancelled()) {
+                    "恢复已被强制终止"
+                } else {
+                    "恢复失败：${it.message ?: "文件无效"}".take(200)
+                }
             }
             isBusy = false
         }
@@ -203,6 +218,65 @@ fun SettingsScreen(
                         enabled = !isBusy,
                         onClick = { if (!isBusy) restoreLauncher.launch(arrayOf("application/json", "text/plain", "*/*")) }
                     )
+                }
+            }
+
+            SectionLabel("维护")
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = KrfrCardShape,
+                color = MaterialTheme.colorScheme.surface,
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+                tonalElevation = 0.dp,
+                shadowElevation = 0.dp
+            ) {
+                Column {
+                    ActionRow(
+                        icon = { IconBox(Icons.Filled.BugReport, "日志") },
+                        title = "运行日志",
+                        description = "查看读取、保存、还原等操作记录与错误",
+                        enabled = true,
+                        onClick = {
+                            LogStore.restore(appContext)
+                            logVersion += 1
+                            showLogDialog = true
+                        }
+                    )
+                    Divider(color = MaterialTheme.colorScheme.outlineVariant)
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickableNoIndication {
+                                val cancelled = OperationState.cancelAll()
+                                statusIsError = cancelled
+                                statusMessage = if (cancelled) {
+                                    "已强制终止当前后台任务"
+                                } else {
+                                    "当前没有运行中的任务"
+                                }
+                            }
+                            .padding(horizontal = 16.dp, vertical = 14.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        IconBox(Icons.Filled.Close, "终止", tint = MaterialTheme.colorScheme.error)
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                "强制清除任务",
+                                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold),
+                                color = MaterialTheme.colorScheme.error
+                            )
+                            Text(
+                                "保存/还原卡住时强制终止后台操作",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        StatusPill(
+                            if (OperationState.isRunning()) "运行中" else "空闲",
+                            if (OperationState.isRunning()) "warn" else "plain"
+                        )
+                    }
                 }
             }
 
@@ -318,6 +392,82 @@ fun SettingsScreen(
                 .padding(bottom = 78.dp)
         )
     }
+
+    if (showLogDialog) {
+        LogDialog(
+            appContext = appContext,
+            version = logVersion,
+            onDismiss = { showLogDialog = false }
+        )
+    }
+}
+
+@Composable
+private fun LogDialog(
+    appContext: android.content.Context,
+    version: Int,
+    onDismiss: () -> Unit
+) {
+    var logs by remember(version) { mutableStateOf(LogStore.snapshot()) }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("运行日志", fontWeight = FontWeight.Bold) },
+        text = {
+            Column {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(320.dp)
+                ) {
+                    if (logs.isEmpty()) {
+                        item {
+                            Text(
+                                "暂无日志",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(vertical = 16.dp)
+                            )
+                        }
+                    } else {
+                        items(logs) { entry ->
+                            val color = when (entry.level) {
+                                "E" -> MaterialTheme.colorScheme.error
+                                "W" -> MaterialTheme.colorScheme.tertiary
+                                else -> MaterialTheme.colorScheme.onSurfaceVariant
+                            }
+                            Text(
+                                "${entry.timeText()} [${entry.level}] ${entry.message}",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = color,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 3.dp)
+                            )
+                        }
+                    }
+                }
+                Text(
+                    "最多保留 200 条，重启后仍可查看",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = {
+                LogStore.clear()
+                LogStore.persist(appContext)
+                logs = emptyList()
+            }) {
+                Text("清空")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("关闭")
+            }
+        }
+    )
 }
 
 @Composable
