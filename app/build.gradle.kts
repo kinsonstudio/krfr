@@ -18,10 +18,28 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+        create("release") {
+            val keystoreProps = file(System.getProperty("user.home") + "/.keystore/krfr.properties")
+            if (keystoreProps.exists()) {
+                val props = keystoreProps.readLines().mapNotNull { line ->
+                    val idx = line.indexOf('=')
+                    if (idx > 0) line.substring(0, idx) to line.substring(idx + 1) else null
+                }.toMap()
+                storeFile = file(props.getValue("storeFile"))
+                storePassword = props.getValue("storePassword")
+                keyAlias = props.getValue("keyAlias")
+                keyPassword = props.getValue("keyPassword")
+            }
+        }
+    }
+
     buildTypes {
         release {
-            isMinifyEnabled = true
-            isShrinkResources = true
+            // 正式签名发布；关闭混淆避免 Shizuku 反射调用被剥离
+            isMinifyEnabled = false
+            isShrinkResources = false
+            signingConfig = signingConfigs.getByName("release")
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
