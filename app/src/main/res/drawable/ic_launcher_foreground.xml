@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- 信号弧 ×3（白色描边，开口朝下） -->
+    <path
+        android:pathData="M41.27,19.27 A18,18 0 0 1 66.73,19.27"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="3.5"
+        android:strokeLineCap="round"/>
+    <path
+        android:pathData="M45.51,23.51 A12,12 0 0 1 62.49,23.51"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="3.5"
+        android:strokeLineCap="round"/>
+    <path
+        android:pathData="M49.76,27.76 A6,6 0 0 1 58.24,27.76"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="3.5"
+        android:strokeLineCap="round"/>
+    <!-- 白色 SIM 卡主体 -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M36,42 H72 A8,8 0 0 1 80,50 V68 A8,8 0 0 1 72,76 H36 A8,8 0 0 1 28,68 V50 A8,8 0 0 1 36,42 Z"/>
+    <!-- 芯片 -->
+    <path
+        android:fillColor="#00707B"
+        android:pathData="M49,54 H59 A3,3 0 0 1 62,57 V61 A3,3 0 0 1 59,64 H49 A3,3 0 0 1 46,61 V57 A3,3 0 0 1 49,54 Z"/>
+    <!-- 触点 ×3 -->
+    <path
+        android:pathData="M36,70 h10"
+        android:strokeColor="#00707B"
+        android:strokeWidth="2.5"
+        android:strokeLineCap="round"/>
+    <path
+        android:pathData="M52,70 h10"
+        android:strokeColor="#00707B"
+        android:strokeWidth="2.5"
+        android:strokeLineCap="round"/>
+    <path
+        android:pathData="M66,70 h8"
+        android:strokeColor="#00707B"
+        android:strokeWidth="2.5"
+        android:strokeLineCap="round"/>
+</vector>
