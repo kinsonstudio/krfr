@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>krfr · SIM 卡国家码与运营商配置工具</title>
+<meta name="description" content="krfr - 开源的 SIM 卡国家码与运营商配置修改工具，基于 Shizuku 免 root 运行，双卡可分别配置。由 KinsonStudio 制作。">
+<style>
+  :root {
+    --bg: #F8F4ED;
+    --ink: #22302B;
+    --ink-soft: #5A6B64;
+    --link: #2F6B5E;
+    --link-dark: #255449;
+    --sand: #8A7A3C;
+    --card: #FFFFFF;
+    --line: #E4DCC9;
+    --chip: #E9E1CC;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", "Microsoft YaHei", sans-serif;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 0 20px; }
+
+  /* ===== 顶栏 ===== */
+  header {
+    background: linear-gradient(150deg, #1E4A40 0%, #2F6B5E 55%, #3E7A6B 100%);
+    color: #F4F0E6;
+    padding: 46px 0 58px;
+    position: relative;
+    overflow: hidden;
+  }
+  header::after {
+    content: "";
+    position: absolute;
+    right: -90px;
+    top: -70px;
+    width: 300px;
+    height: 300px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(127,214,184,0.25), transparent 65%);
+  }
+  .brand { display: flex; align-items: center; gap: 16px; }
+  .logo { flex: 0 0 auto; }
+  .brand-name { font-size: 34px; font-weight: 800; letter-spacing: 1px; }
+  .brand-sub { font-size: 15px; opacity: 0.85; margin-top: 4px; }
+  .slogan { font-size: 17px; margin-top: 26px; max-width: 600px; opacity: 0.95; }
+
+  /* ===== 下载卡片 ===== */
+  .dl-card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    box-shadow: 0 10px 30px rgba(34,48,43,0.08);
+    padding: 28px 26px;
+    margin: -32px 0 34px;
+    position: relative;
+    z-index: 2;
+  }
+  .dl-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 18px; }
+  .version-tag {
+    background: var(--link);
+    color: #F2EFE4;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 4px 12px;
+    border-radius: 999px;
+    letter-spacing: 0.5px;
+  }
+  .dl-date { color: var(--ink-soft); font-size: 13px; }
+  .dl-name { font-size: 15px; color: var(--ink); font-weight: 600; }
+  .dl-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: linear-gradient(135deg, #2F6B5E, #245A4E);
+    color: #F4F0E6;
+    font-size: 17px;
+    font-weight: 700;
+    text-decoration: none;
+    padding: 14px 30px;
+    border-radius: 14px;
+    box-shadow: 0 6px 18px rgba(47,107,94,0.35);
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+  }
+  .dl-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(47,107,94,0.42); }
+  .dl-btn:active { transform: translateY(0); }
+  .dl-btn svg { flex: 0 0 auto; }
+  .dl-note { margin-top: 12px; font-size: 13px; color: var(--ink-soft); }
+  .dl-note a { color: var(--link); }
+
+  /* ===== 区块 ===== */
+  section { margin: 34px 0; }
+  h2 {
+    font-size: 19px;
+    font-weight: 700;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  h2::before {
+    content: "";
+    width: 4px;
+    height: 18px;
+    border-radius: 2px;
+    background: var(--sand);
+  }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .feature {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 16px 18px;
+  }
+  .feature b { display: block; font-size: 15px; margin-bottom: 4px; }
+  .feature span { font-size: 13.5px; color: var(--ink-soft); }
+  .changelog { list-style: none; }
+  .changelog li {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 16px 18px;
+    margin-bottom: 12px;
+  }
+  .changelog .ver { font-weight: 700; font-size: 15px; color: var(--link-dark); }
+  .changelog .ver em { font-style: normal; color: var(--ink-soft); font-weight: 400; font-size: 12.5px; margin-left: 8px; }
+  .changelog ul { margin: 8px 0 0 18px; color: var(--ink-soft); font-size: 13.5px; }
+  .notice {
+    background: var(--chip);
+    border-radius: 14px;
+    padding: 16px 18px;
+    font-size: 13.5px;
+    color: #4A4A38;
+  }
+  .notice li { margin-left: 18px; margin-top: 4px; }
+
+  footer {
+    border-top: 1px solid var(--line);
+    margin-top: 46px;
+    padding: 24px 0 38px;
+    color: var(--ink-soft);
+    font-size: 13px;
+    text-align: center;
+  }
+  footer a { color: var(--link); text-decoration: none; font-weight: 600; }
+
+  @media (max-width: 560px) {
+    .grid { grid-template-columns: 1fr; }
+    .brand-name { font-size: 28px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="brand">
+      <svg class="logo" width="56" height="56" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#3E7A6B"/>
+            <stop offset="1" stop-color="#1E4A40"/>
+          </linearGradient>
+        </defs>
+        <rect x="4" y="4" width="92" height="92" rx="24" fill="url(#bg)"/>
+        <path d="M24 34 h22 q2 0 2 2 v26 q0 2 -2 2 h-22 q-2 0 -2 -2 v-26 q0 -2 2 -2 z" fill="#F8F4ED"/>
+        <path d="M38 66 h14 v8 h-14 z" fill="#7FD6B8"/>
+        <circle cx="55" cy="46" r="4" fill="#F8F4ED"/>
+        <path d="M54 46 h8 q2 0 2 2 v24" stroke="#F8F4ED" stroke-width="3" fill="none" stroke-linecap="round"/>
+        <path d="M46 78 h28 q2 0 2 -2 v-10 q0 -2 -2 -2" stroke="#F8F4ED" stroke-width="3" fill="none" stroke-linecap="round"/>
+        <circle cx="57" cy="28" r="9" fill="#7FD6B8"/>
+        <path d="M57 21 a7 7 0 0 1 0 14" fill="none" stroke="#1E4A40" stroke-width="3" stroke-linecap="round"/>
+        <path d="M57 24 a4 4 0 0 1 0 8" fill="none" stroke="#1E4A40" stroke-width="3" stroke-linecap="round"/>
+      </svg>
+      <div>
+        <div class="brand-name">krfr</div>
+        <div class="brand-sub">SIM 卡国家码 · 运营商配置工具</div>
+      </div>
+    </div>
+    <div class="slogan">免 root 修改 SIM 卡国家码与运营商覆盖，基于 Shizuku 运行，双卡独立配置，配置一键备份与还原。</div>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="dl-card">
+    <div class="dl-meta">
+      <span class="version-tag">v1.0.3</span>
+      <span class="dl-date">2026-10-15 更新</span>
+      <span class="dl-name">krfr-v1.0.3-debug.apk</span>
+    </div>
+    <a class="dl-btn" href="krfr.apk" download>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 3v12m0 0l-4.5-4.5M12 15l4.5-4.5"/>
+        <path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/>
+      </svg>
+      下载最新版 APK
+    </a>
+    <div class="dl-note">
+      若下载速度慢，可到
+      <a href="https://github.com/kinsonstudio/krfr/releases" target="_blank" rel="noopener">GitHub Releases</a>
+      获取备用下载（国内访问可能较慢）。
+    </div>
+  </div>
+
+  <section>
+    <h2>功能特性</h2>
+    <div class="grid">
+      <div class="feature"><b>国家码 / 运营商覆盖</b><span>双 SIM 卡分别配置国家码与运营商名称，支持自定义。</span></div>
+      <div class="feature"><b>SIM 卡详细状态</b><span>实时查看信号强度、网络类型、MCC/MNC、漫游与 ICCID。</span></div>
+      <div class="feature"><b>配置备份与还原</b><span>一键备份全部配置，随时恢复，支持主卡副卡一起还原。</span></div>
+      <div class="feature"><b>快捷方案</b><span>常用配置存为方案，一键切换，无需重复填写。</span></div>
+      <div class="feature"><b>运行日志</b><span>操作全程记录，可查看、复制、导出，问题一目了然。</span></div>
+      <div class="feature"><b>免 root · Shizuku</b><span>基于 Shizuku 授权，无需 root，安全无残留。</span></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>更新日志</h2>
+    <ul class="changelog">
+      <li>
+        <div class="ver">v1.0.3<em>2026-10-15</em></div>
+        <ul>
+          <li>检查更新改用国内服务器接口，检查更快更稳（GitHub 自动兜底）</li>
+        </ul>
+      </li>
+      <li>
+        <div class="ver">v1.0.2<em>2026-10-15</em></div>
+        <ul>
+          <li>修复：配置已还原后仍显示「已覆盖」的误判，改为读取系统真实状态</li>
+          <li>修复：报错后运行日志为空的问题，所有操作错误均写入日志</li>
+          <li>新增：日志一键复制、导出为文件</li>
+          <li>还原 / 保存后页面自动刷新，不再残留旧数据</li>
+        </ul>
+      </li>
+      <li>
+        <div class="ver">v1.0.1<em>2026-10-15</em></div>
+        <ul>
+          <li>一键还原大幅提速：双卡并行、去掉重复阻塞同步</li>
+          <li>保存 / 读取速度优化：服务实例缓存、超时保护</li>
+          <li>新增强制清除任务：操作卡住时可强制终止</li>
+          <li>交互动效优化：页面切换动画、按钮按压反馈</li>
+        </ul>
+      </li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>使用须知</h2>
+    <div class="notice">
+      <ul>
+        <li>需要已安装并授权 <b>Shizuku</b>（免 root 授权方案）。</li>
+        <li>修改国家码 / 运营商覆盖仅影响部分应用的地区判定逻辑，请按需使用。</li>
+        <li>本工具仅用于学习与技术研究，请勿用于违规用途。</li>
+        <li>开源项目：由 <b>KinsonStudio</b> 制作 · 基于 Nrfr 开源，遵循 Apache-2.0 许可。</li>
+      </ul>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    由 <a href="https://github.com/kinsonstudio" target="_blank" rel="noopener">KinsonStudio</a> 制作 · 基于 Nrfr 开源 · <a href="https://github.com/kinsonstudio/krfr" target="_blank" rel="noopener">GitHub 仓库</a><br>
+    源代码完全开源，欢迎 Star &amp; 贡献
+  </div>
+</footer>
+
+</body>
+</html>

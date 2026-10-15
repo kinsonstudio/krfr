@@ -1,0 +1,8 @@
+{
+  "app": "krfr",
+  "latest_version": "1.0.3",
+  "version_code": 4,
+  "update_url": "https://taiai.asia/krfr.apk",
+  "release_date": "2026-10-15",
+  "changelog": "v1.0.3：检查更新改用国内服务器接口（GitHub 兜底），国内检查更快更稳"
+}

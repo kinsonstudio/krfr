@@ -18,13 +18,34 @@ data class AppRelease(
 )
 
 object AppUpdateManager {
-    // krfr 官方更新源：kinsonstudio/krfr 的 GitHub Release
-    private const val API_URL = "https://api.github.com/repos/kinsonstudio/krfr/releases/latest"
+    // krfr 更新源：优先国内服务器（快），GitHub Release 兜底
+    private const val SERVER_URL = "https://taiai.asia/krfr.json"
+    private const val GITHUB_URL = "https://api.github.com/repos/kinsonstudio/krfr/releases/latest"
     private const val MAX_METADATA_BYTES = 1024 * 1024
     private const val MAX_APK_BYTES = 100L * 1024 * 1024
 
     fun fetchLatestRelease(): AppRelease {
-        val json = requestText(API_URL, MAX_METADATA_BYTES)
+        val fromServer = runCatching { fetchFromServer() }.getOrNull()
+        if (fromServer != null) {
+            return fromServer
+        }
+        return fetchFromGithub()
+    }
+
+    private fun fetchFromServer(): AppRelease {
+        val json = requestText(SERVER_URL, MAX_METADATA_BYTES)
+        val release = JSONObject(json)
+        val version = release.optString("latest_version").trim()
+        require(version.isNotEmpty()) { "服务器没有有效版本号" }
+        val url = release.optString("update_url").trim()
+        require(url.isNotEmpty()) { "服务器没有更新地址" }
+        val notes = release.optString("changelog").trim()
+        val fileName = url.substringAfterLast('/').ifBlank { "krfr.apk" }
+        return AppRelease(version, url, fileName, notes, 0L)
+    }
+
+    private fun fetchFromGithub(): AppRelease {
+        val json = requestText(GITHUB_URL, MAX_METADATA_BYTES)
         val release = JSONObject(json)
         val version = release.optString("tag_name").removePrefix("v").trim()
         require(version.isNotEmpty()) { "仓库没有有效版本号" }
