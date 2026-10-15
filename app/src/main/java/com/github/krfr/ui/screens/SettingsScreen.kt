@@ -123,6 +123,7 @@ fun SettingsScreen(
             }.onSuccess { count ->
                 statusIsError = false
                 statusMessage = "恢复完成，已应用 $count 个卡槽"
+                LogStore.i("恢复备份完成，已应用 $count 个卡槽")
             }.onFailure {
                 statusIsError = true
                 statusMessage = if (OperationState.wasCancelled()) {
@@ -130,6 +131,7 @@ fun SettingsScreen(
                 } else {
                     "恢复失败：${it.message ?: "文件无效"}".take(200)
                 }
+                LogStore.e("恢复备份异常: ${it.message.orEmpty()}")
             }
             isBusy = false
         }
@@ -409,6 +411,18 @@ private fun LogDialog(
     onDismiss: () -> Unit
 ) {
     var logs by remember(version) { mutableStateOf(LogStore.snapshot()) }
+    val exportLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.CreateDocument("text/plain")
+    ) { uri ->
+        if (uri == null) return@rememberLauncherForActivityResult
+        runCatching {
+            appContext.contentResolver.openOutputStream(uri)?.use { out ->
+                out.write(LogStore.exportText().toByteArray(Charsets.UTF_8))
+            } ?: error("无法写入导出文件")
+        }.onFailure {
+            LogStore.e("导出日志失败: ${it.message.orEmpty()}")
+        }
+    }
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("运行日志", fontWeight = FontWeight.Bold) },
@@ -417,7 +431,7 @@ private fun LogDialog(
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(320.dp)
+                        .height(280.dp)
                 ) {
                     if (logs.isEmpty()) {
                         item {
@@ -451,6 +465,28 @@ private fun LogDialog(
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    TextButton(onClick = {
+                        runCatching {
+                            val clipboard = appContext.getSystemService(
+                                android.content.Context.CLIPBOARD_SERVICE
+                            ) as? android.content.ClipboardManager
+                            clipboard?.setPrimaryClip(
+                                android.content.ClipData.newPlainText(
+                                    "krfr 运行日志",
+                                    LogStore.exportText()
+                                )
+                            )
+                        }.onFailure { LogStore.e("复制日志失败: ${it.message.orEmpty()}") }
+                    }) {
+                        Text("复制日志")
+                    }
+                    TextButton(onClick = {
+                        exportLauncher.launch("krfr_logs_${System.currentTimeMillis() / 1000}.txt")
+                    }) {
+                        Text("导出日志")
+                    }
+                }
             }
         },
         confirmButton = {

@@ -40,6 +40,21 @@ object LogStore {
     @Synchronized
     fun snapshot(): List<Entry> = entries.toList()
 
+    /** 格式化全文，用于复制 / 导出 */
+    @Synchronized
+    fun exportText(): String {
+        if (entries.isEmpty()) {
+            return "（暂无日志）"
+        }
+        return buildString {
+            appendLine("krfr 运行日志 · ${SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault()).format(Date())}")
+            appendLine("----------------")
+            entries.forEach { entry ->
+                appendLine("${entry.timeText()} [${entry.level}] ${entry.message}")
+            }
+        }
+    }
+
     @Synchronized
     fun clear() {
         entries.clear()
@@ -60,9 +75,12 @@ object LogStore {
             .edit().putString(KEY_ENTRIES, json.toString()).apply()
     }
 
+    /** 仅当内存为空时加载持久化日志；否则保留当前会话日志（避免打开日志时把新日志清掉） */
     @Synchronized
     fun restore(context: Context) {
-        entries.clear()
+        if (entries.isNotEmpty()) {
+            return
+        }
         val raw = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
             .getString(KEY_ENTRIES, null) ?: return
         runCatching {

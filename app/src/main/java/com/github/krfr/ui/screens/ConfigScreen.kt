@@ -42,6 +42,7 @@ import androidx.compose.ui.unit.sp
 import com.github.krfr.data.CountryPresets
 import com.github.krfr.data.PresetCarriers
 import com.github.krfr.manager.CarrierConfigManager
+import com.github.krfr.manager.LogStore
 import com.github.krfr.manager.OperationState
 import com.github.krfr.manager.toSimCardsUserMessage
 import com.github.krfr.model.SimCardInfo
@@ -229,6 +230,7 @@ fun ConfigScreen() {
                                     }
                                     statusIsError = false
                                     statusMessage = "已还原全部 SIM 的覆盖配置（主卡 + 副卡）"
+                                    delay(400)
                                     refreshSimCards()
                                     slotDrafts.clear()
                                     selectedCountryCode = ""
@@ -243,6 +245,9 @@ fun ConfigScreen() {
                                     } else {
                                         "全部还原失败: ${formatErrorMessage(e)}"
                                     }
+                                    LogStore.e("全部还原异常: ${e.message.orEmpty()}")
+                                    delay(400)
+                                    refreshSimCards()
                                 } finally {
                                     OperationState.end()
                                     isApplyingConfig = false
@@ -359,6 +364,7 @@ fun ConfigScreen() {
                             }
                             statusIsError = false
                             statusMessage = buildOperationMessage("设置已还原", result.warnings)
+                            delay(400)
                             refreshSimCards()
                             slotDrafts.remove(simCard.slot)
                             selectedCountryCode = ""
@@ -373,6 +379,9 @@ fun ConfigScreen() {
                             } else {
                                 "还原失败: ${formatErrorMessage(e)}"
                             }
+                            LogStore.e("还原异常: ${e.message.orEmpty()}")
+                            delay(400)
+                            refreshSimCards()
                         } finally {
                             OperationState.end()
                             isApplyingConfig = false
@@ -410,6 +419,7 @@ fun ConfigScreen() {
                             statusIsError = false
                             statusMessage = buildOperationMessage("设置已保存", result.warnings)
                             slotDrafts[simCard.slot] = currentDraft()
+                            delay(400)
                             refreshSimCards()
                         } catch (e: Exception) {
                             statusIsError = true
@@ -418,6 +428,9 @@ fun ConfigScreen() {
                             } else {
                                 "保存失败: ${formatErrorMessage(e)}"
                             }
+                            LogStore.e("保存异常: ${e.message.orEmpty()}")
+                            delay(400)
+                            refreshSimCards()
                         } finally {
                             OperationState.end()
                             isApplyingConfig = false

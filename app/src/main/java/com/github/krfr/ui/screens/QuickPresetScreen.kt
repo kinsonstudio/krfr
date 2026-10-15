@@ -21,6 +21,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.github.krfr.data.QuickPresets
 import com.github.krfr.manager.CarrierConfigManager
+import com.github.krfr.manager.LogStore
 import com.github.krfr.manager.OperationState
 import com.github.krfr.manager.toSimCardsUserMessage
 import com.github.krfr.model.SimCardInfo
@@ -109,6 +110,7 @@ fun QuickPresetScreen() {
                 } else {
                     "应用失败：${e.message?.lineSequence()?.firstOrNull()?.take(120) ?: "未知错误"}"
                 }
+                LogStore.e("快捷方案应用异常: ${e.message.orEmpty()}")
             } finally {
                 OperationState.end()
                 isApplying = false
