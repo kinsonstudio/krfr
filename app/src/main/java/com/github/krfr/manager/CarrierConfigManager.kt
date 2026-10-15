@@ -45,8 +45,8 @@ object CarrierConfigManager {
 
     fun getSimCards(context: Context): List<SimCardInfo> {
         val startedAt = System.currentTimeMillis()
-        runCatching { rememberLiveOverrides(context, getCurrentConfigsByDumpsys()) }
-            .onFailure { LogStore.w("记录覆盖快照失败: ${it.message.orEmpty()}") }
+        // 注意：不在这里把 dumpsys 快照写进 prefs（rememberLiveOverrides）。
+        // 还原后 dumpsys 短暂残留旧值会被误记，开机回写会让已还原的覆盖“复活”。
         runCatching { ensureClearedAfterReboot(context) }
             .onFailure { LogStore.w("开机回写失败: ${it.message.orEmpty()}") }
         runCatching { scrubOrphanBadges(context) }
@@ -61,23 +61,21 @@ object CarrierConfigManager {
             val subId = isubSnapshot?.slotToSubId?.get(slotIndex)
                 ?: getSubIdForSlotViaApi(context, slotIndex)
                 ?: continue
-            // 覆盖状态以系统 API 层为准（loader → public API），dumpsys 仅作最后兜底。
-            // 还原后 dumpsys 的 mOverrideConfigs 可能短暂残留旧值，而 API 层已清空，
-            // 若优先 dumpsys 会出现“已还原却显示已覆盖”的误判。
+            // 覆盖状态以 dumpsys 的 mOverrideConfigs（CarrierConfigService 真实覆盖表）为准：
+            // 还原后 ICarrierConfigLoader.getConfigForSubId 的合并缓存可能残留旧值（需 notify 刷新），
+            // dumpsys 才是系统真实状态；loader / public API 仅在 dumpsys 拿不到时兜底。
             var configSource = "dumpsys"
-            val loaderConfig = getCurrentConfigByLoader(context, subId)
-            val apiConfig = runCatching { getCurrentConfigByPublicApi(context, subId) }
-                .getOrNull()
             val config = when {
-                loaderConfig != null -> {
-                    configSource = "loader"
-                    loaderConfig
+                configsByPhoneId.containsKey(slotIndex) -> configsByPhoneId[slotIndex] ?: emptyMap()
+                else -> {
+                    getCurrentConfigByLoader(context, subId)?.let {
+                        configSource = "loader"
+                        it
+                    } ?: runCatching { getCurrentConfigByPublicApi(context, subId) }.getOrNull()?.let {
+                        configSource = "api"
+                        it
+                    } ?: emptyMap()
                 }
-                apiConfig != null -> {
-                    configSource = "api"
-                    apiConfig
-                }
-                else -> configsByPhoneId[slotIndex] ?: emptyMap()
             }
             val carrierName = getCarrierNameBySubId(
                 context,
@@ -321,7 +319,11 @@ object CarrierConfigManager {
             TelephonyHiddenApi.overrideConfig(subId, bundle, persistent = false)
             syncSubscriptionAfterOverride(context, subId, bundle)
             // 还原（null）只等 2s，设置等 3s；避免配置生效确认把保存/还原拖慢
-            waitUntilConfigMatches(context, subId, bundle, timeoutMs = if (bundle == null) 2_000L else 3_000L)
+            if (!waitUntilConfigMatches(context, subId, bundle, timeoutMs = if (bundle == null) 2_000L else 3_000L)
+                && bundle == null
+            ) {
+                throw IllegalStateException("还原未生效：系统仍存在覆盖配置，请查看运行日志")
+            }
             return false
         } catch (error: SecurityException) {
             if (!error.message.orEmpty().contains("cannot be invoked by shell", ignoreCase = true)) {
@@ -344,7 +346,11 @@ object CarrierConfigManager {
         }
         if (delegatedError.isSuccess) {
             syncSubscriptionAfterOverride(context, subId, bundle)
-            waitUntilConfigMatches(context, subId, bundle, timeoutMs = if (bundle == null) 2_000L else 3_000L)
+            if (!waitUntilConfigMatches(context, subId, bundle, timeoutMs = if (bundle == null) 2_000L else 3_000L)
+                && bundle == null
+            ) {
+                throw IllegalStateException("还原未生效：系统仍存在覆盖配置，请查看运行日志")
+            }
             return false
         }
 
@@ -360,6 +366,10 @@ object CarrierConfigManager {
         }
         // 配置已提交成功；生效确认超时不抛错（系统会异步生效，误报会让页面停留在旧状态）
         if (!waitUntilConfigMatches(context, subId, bundle, timeoutMs = 6_000L)) {
+            if (bundle == null) {
+                // 还原（清空覆盖）必须确认真正生效，避免“假成功”导致页面一直显示已覆盖
+                throw IllegalStateException("还原未生效：系统仍存在覆盖配置，请查看运行日志")
+            }
             LogStore.w("配置已提交但生效确认超时 subId=$subId bundle=${bundle != null}，系统会继续异步生效")
         }
         return usedInstrumentation
@@ -375,22 +385,33 @@ object CarrierConfigManager {
         val expected = expectedBundle?.let { parseConfigBundle(it) } ?: emptyMap()
         val deadline = System.currentTimeMillis() + timeoutMs
         while (System.currentTimeMillis() < deadline) {
-            if (configMatches(readOverrideConfigForPhoneId(context, phoneId), expected)) {
+            // 轮询期间强制重读 dumpsys，避免 3s 缓存让残留旧值一直命中
+            if (configMatches(readOverrideConfigForPhoneId(context, phoneId, forceDumpsysRefresh = true), expected)) {
                 return true
             }
             Thread.sleep(250)
         }
-        return configMatches(readOverrideConfigForPhoneId(context, phoneId), expected)
+        return configMatches(readOverrideConfigForPhoneId(context, phoneId, forceDumpsysRefresh = true), expected)
     }
 
-    private fun readOverrideConfigForPhoneId(context: Context, phoneId: Int): Map<String, String> {
+    private fun readOverrideConfigForPhoneId(
+        context: Context,
+        phoneId: Int,
+        forceDumpsysRefresh: Boolean = false
+    ): Map<String, String> {
         val subId = getIsubSnapshotByDumpsys()?.slotToSubId?.get(phoneId)
             ?: getSubIdForSlotViaApi(context, phoneId)
-            ?: return getCurrentConfigsByDumpsys()[phoneId] ?: emptyMap()
-        // 与 getSimCards 保持同一优先级：loader → public API → dumpsys
+        // dumpsys 的 mOverrideConfigs 是 CarrierConfigService 的真实覆盖表，优先；
+        // loader 合并缓存可能在还原后残留旧值（需 notify 刷新），只作兜底。
+        val dumpsysConfig = getCurrentConfigsByDumpsys(forceRefresh = forceDumpsysRefresh)[phoneId]
+        if (dumpsysConfig != null) {
+            return dumpsysConfig
+        }
+        if (subId == null) {
+            return emptyMap()
+        }
         return getCurrentConfigByLoader(context, subId)
             ?: runCatching { getCurrentConfigByPublicApi(context, subId) }.getOrNull()
-            ?: getCurrentConfigsByDumpsys()[phoneId]
             ?: emptyMap()
     }
 
@@ -546,11 +567,13 @@ object CarrierConfigManager {
         return result
     }
 
-    private fun getCurrentConfigsByDumpsys(): Map<Int, Map<String, String>> {
+    private fun getCurrentConfigsByDumpsys(forceRefresh: Boolean = false): Map<Int, Map<String, String>> {
         val now = System.currentTimeMillis()
-        currentConfigsCache?.let { cached ->
-            if (now - cached.at < READ_CACHE_TTL_MS) {
-                return cached.value as? Map<Int, Map<String, String>> ?: emptyMap()
+        if (!forceRefresh) {
+            currentConfigsCache?.let { cached ->
+                if (now - cached.at < READ_CACHE_TTL_MS) {
+                    return cached.value as? Map<Int, Map<String, String>> ?: emptyMap()
+                }
             }
         }
         val fresh = try {

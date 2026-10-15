@@ -230,7 +230,7 @@ fun ConfigScreen() {
                                     }
                                     statusIsError = false
                                     statusMessage = "已还原全部 SIM 的覆盖配置（主卡 + 副卡）"
-                                    delay(400)
+                                    delay(1500)
                                     refreshSimCards()
                                     slotDrafts.clear()
                                     selectedCountryCode = ""
@@ -364,7 +364,7 @@ fun ConfigScreen() {
                             }
                             statusIsError = false
                             statusMessage = buildOperationMessage("设置已还原", result.warnings)
-                            delay(400)
+                            delay(1500)
                             refreshSimCards()
                             slotDrafts.remove(simCard.slot)
                             selectedCountryCode = ""
