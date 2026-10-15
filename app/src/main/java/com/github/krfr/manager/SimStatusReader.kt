@@ -74,8 +74,14 @@ object SimStatusReader {
 
         val mcc = info?.let { reflectInt(it, "getMcc") }?.takeIf { it > 0 }?.toString() ?: "—"
         val mnc = info?.let { reflectInt(it, "getMnc") }?.takeIf { it > 0 }?.toString() ?: "—"
-        val countryIso = info?.let { reflectString(it, "getCountryIso") }
-            ?.uppercase()?.ifEmpty { "—" } ?: "—"
+        // 国家/地区：有覆盖时显示覆盖国家码；还原后按 MCC（SIM 物理数据）解析，460=中国。
+        // 不用 SubInfo 的 countryIso——还原后它可能残留旧覆盖值（如 HK/JP）。
+        val countryIso = card.currentConfig["国家码"]?.takeIf { it.isNotBlank() }?.uppercase()
+            ?: when {
+                mcc == "460" -> "CN"
+                else -> info?.let { reflectString(it, "getCountryIso") }
+                    ?.uppercase()?.ifEmpty { "—" } ?: "—"
+            }
         val roaming = info?.let { reflectInt(it, "getDataRoaming") == 1 } == true
         val iccid = info?.let { reflectString(it, "getIccId").orEmpty() }.orEmpty()
 

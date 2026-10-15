@@ -665,30 +665,30 @@ object CarrierConfigManager {
         currentConfig: Map<String, String>,
         isubSnapshot: IsubSnapshot?
     ): String {
+        // 1. 当前覆盖配置里的运营商名称（有覆盖时优先显示覆盖名）
         currentConfig["运营商名称"]?.takeIf { it.isNotBlank() }?.let { return it }
 
-        isubSnapshot?.subIdToCarrierName?.get(subId)?.takeIf { it.isNotBlank() }?.let { return it }
-
+        // 2. 真实 SIM 归属运营商：MCC/MNC 是 SIM 物理数据，覆盖还原后依然准确。
+        //    还原后 SubInfo 显示名可能残留旧覆盖名，因此优先用 MCC/MNC 解析真实名称。
         val subscriptionManager =
             context.getSystemService(Context.TELEPHONY_SUBSCRIPTION_SERVICE) as? SubscriptionManager
-        subscriptionManager?.let { manager ->
-            val subscriptionInfo = runCatching {
-                manager.getActiveSubscriptionInfo(subId)
-            }.getOrNull() ?: runCatching {
-                manager.getActiveSubscriptionInfoForSimSlotIndex(slotIndex)
-            }.getOrNull()
-            subscriptionInfo?.let { info ->
-                resolveCarrierNameByMccMnc(
-                    String.format("%03d%02d", info.mcc, info.mnc)
-                )?.let { return it }
-
-                info.displayName?.toString()?.trim()
-                    ?.replace(Regex("""\d+$"""), "")
-                    ?.trim()
-                    ?.takeIf { it.isNotEmpty() }
-                    ?.let { return it }
-            }
+        val subscriptionInfo = subscriptionManager?.let { manager ->
+            runCatching { manager.getActiveSubscriptionInfo(subId) }.getOrNull()
+                ?: runCatching { manager.getActiveSubscriptionInfoForSimSlotIndex(slotIndex) }.getOrNull()
         }
+        if (subscriptionInfo != null) {
+            resolveCarrierNameByMccMnc(
+                String.format("%03d%02d", subscriptionInfo.mcc, subscriptionInfo.mnc)
+            )?.let { return it }
+        }
+
+        // 3. SubInfo 显示名（可能有覆盖残留，仅作兜底）
+        isubSnapshot?.subIdToCarrierName?.get(subId)?.takeIf { it.isNotBlank() }?.let { return it }
+        subscriptionInfo?.displayName?.toString()?.trim()
+            ?.replace(Regex("""\d+$"""), "")
+            ?.trim()
+            ?.takeIf { it.isNotEmpty() }
+            ?.let { return it }
 
         val telephonyManager = context.getSystemService(Context.TELEPHONY_SERVICE) as? TelephonyManager
             ?: return ""
