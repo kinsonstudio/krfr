@@ -1,8 +1,8 @@
 {
   "app": "krfr",
-  "latest_version": "1.0.4",
-  "version_code": 5,
+  "latest_version": "1.0.5",
+  "version_code": 6,
   "update_url": "https://taiai.asia/krfr.apk",
   "release_date": "2026-10-15",
-  "changelog": "v1.0.4：修复一键还原后仍显示已覆盖/旧运营商（覆盖状态改为读取系统真实覆盖表，还原后强制刷新并校验生效）"
+  "changelog": "v1.0.5：修复还原误报（系统已还原但显示已覆盖/还原未生效）——空值配置视为无覆盖，还原校验更准确"
 }

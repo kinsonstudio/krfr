@@ -65,7 +65,7 @@ object CarrierConfigManager {
             // 还原后 ICarrierConfigLoader.getConfigForSubId 的合并缓存可能残留旧值（需 notify 刷新），
             // dumpsys 才是系统真实状态；loader / public API 仅在 dumpsys 拿不到时兜底。
             var configSource = "dumpsys"
-            val config = when {
+            val rawConfig = when {
                 configsByPhoneId.containsKey(slotIndex) -> configsByPhoneId[slotIndex] ?: emptyMap()
                 else -> {
                     getCurrentConfigByLoader(context, subId)?.let {
@@ -77,6 +77,8 @@ object CarrierConfigManager {
                     } ?: emptyMap()
                 }
             }
+            // 关键：loader 在还原后可能返回含"国家码=空"键的合并配置，视为无覆盖
+            val config = normalizeCoverage(rawConfig)
             val carrierName = getCarrierNameBySubId(
                 context,
                 subId,
@@ -93,6 +95,14 @@ object CarrierConfigManager {
         LogStore.i("读取 SIM 卡完成 用时 ${System.currentTimeMillis() - startedAt}ms 卡数=${simCards.size}")
         return simCards
     }
+
+    /** 是否包含有效覆盖内容（至少一个非空白值） */
+    private fun hasEffectiveCoverage(config: Map<String, String>): Boolean =
+        config.values.any { it.isNotBlank() }
+
+    /** 全空值的配置视为无覆盖（还原后 loader 可能返回含空国家码键的合并配置） */
+    private fun normalizeCoverage(config: Map<String, String>): Map<String, String> =
+        if (hasEffectiveCoverage(config)) config else emptyMap()
 
     /**
      * 每次开机后首次把已保存的卡1/卡2覆盖写回去（不清空）。
@@ -416,10 +426,11 @@ object CarrierConfigManager {
     }
 
     private fun configMatches(current: Map<String, String>, expected: Map<String, String>): Boolean {
+        val currentNorm = normalizeCoverage(current)
         if (expected.isEmpty()) {
-            return current.isEmpty()
+            return currentNorm.isEmpty()
         }
-        return expected.all { (key, value) -> current[key] == value }
+        return expected.all { (key, value) -> currentNorm[key] == value }
     }
 
     private fun getPhoneIdForSubId(context: Context, subId: Int): Int? {
