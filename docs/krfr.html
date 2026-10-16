@@ -18,12 +18,14 @@
     --chip: #E9E1CC;
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { min-height: 100%; }
   body {
     background: var(--bg);
     color: var(--ink);
     font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", "Microsoft YaHei", sans-serif;
     line-height: 1.6;
     -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
   }
   .wrap { max-width: 760px; margin: 0 auto; padding: 0 20px; }
 
@@ -31,7 +33,7 @@
   header {
     background: linear-gradient(150deg, #1E4A40 0%, #2F6B5E 55%, #3E7A6B 100%);
     color: #F4F0E6;
-    padding: 46px 0 58px;
+    padding: 44px 0 46px;
     position: relative;
     overflow: hidden;
   }
@@ -51,16 +53,14 @@
   .brand-sub { font-size: 15px; opacity: 0.85; margin-top: 4px; }
   .slogan { font-size: 17px; margin-top: 26px; max-width: 600px; opacity: 0.95; }
 
-  /* ===== 下载卡片 ===== */
+  /* ===== 下载卡片（正常文档流，不用负边距遮挡，避免手机上内容被顶掉）===== */
   .dl-card {
     background: var(--card);
     border: 1px solid var(--line);
     border-radius: 18px;
     box-shadow: 0 10px 30px rgba(34,48,43,0.08);
     padding: 28px 26px;
-    margin: -32px 0 34px;
-    position: relative;
-    z-index: 2;
+    margin: 28px 0 12px;
   }
   .dl-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 18px; }
   .version-tag {
@@ -95,7 +95,7 @@
   .dl-note a { color: var(--link); }
 
   /* ===== 区块 ===== */
-  section { margin: 34px 0; }
+  section { margin: 30px 0; }
   h2 {
     font-size: 19px;
     font-weight: 700;
@@ -131,6 +131,17 @@
   .changelog .ver { font-weight: 700; font-size: 15px; color: var(--link-dark); }
   .changelog .ver em { font-style: normal; color: var(--ink-soft); font-weight: 400; font-size: 12.5px; margin-left: 8px; }
   .changelog ul { margin: 8px 0 0 18px; color: var(--ink-soft); font-size: 13.5px; }
+  .changelog .new-badge {
+    display: inline-block;
+    background: #7FD6B8;
+    color: #1E4A40;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 1px 8px;
+    border-radius: 999px;
+    margin-left: 8px;
+    vertical-align: 1px;
+  }
   .notice {
     background: var(--chip);
     border-radius: 14px;
@@ -142,7 +153,7 @@
 
   footer {
     border-top: 1px solid var(--line);
-    margin-top: 46px;
+    margin-top: 40px;
     padding: 24px 0 38px;
     color: var(--ink-soft);
     font-size: 13px;
@@ -191,7 +202,7 @@
   <div class="dl-card">
     <div class="dl-meta">
       <span class="version-tag">v1.0.8</span>
-      <span class="dl-date">2026-10-15 更新</span>
+      <span class="dl-date">2026-10-16 更新</span>
       <span class="dl-name">krfr-v1.0.8-release.apk</span>
     </div>
     <a class="dl-btn" href="krfr.apk" download>
@@ -215,6 +226,8 @@
       <div class="feature"><b>SIM 卡详细状态</b><span>实时查看信号强度、网络类型、MCC/MNC、漫游与 ICCID。</span></div>
       <div class="feature"><b>配置备份与还原</b><span>一键备份全部配置，随时恢复，支持主卡副卡一起还原。</span></div>
       <div class="feature"><b>快捷方案</b><span>常用配置存为方案，一键切换，无需重复填写。</span></div>
+      <div class="feature"><b>个性化外观</b><span>4 套配色主题、明暗模式、上传图片做背景，还能改 SIM 卡显示名。</span></div>
+      <div class="feature"><b>三语支持</b><span>英文（默认）/ 简体中文 / 繁體中文，首次进入先选语言。</span></div>
       <div class="feature"><b>运行日志</b><span>操作全程记录，可查看、复制、导出，问题一目了然。</span></div>
       <div class="feature"><b>免 root · Shizuku</b><span>基于 Shizuku 授权，无需 root，安全无残留。</span></div>
     </div>
@@ -223,6 +236,22 @@
   <section>
     <h2>更新日志</h2>
     <ul class="changelog">
+      <li>
+        <div class="ver">v1.0.8<em>2026-10-16</em><span class="new-badge">最新</span></div>
+        <ul>
+          <li>新增「个性化」页面：4 套配色主题（墨绿 / 海蓝 / 暖橙 / 玫红）、明暗模式、上传图片作为应用背景</li>
+          <li>SIM 卡个性化：可修改每张 SIM 卡的显示名（状态栏卡名），支持一键还原默认</li>
+          <li>三语支持：英文（默认）/ 简体中文 / 繁體中文，全部界面文字本地化</li>
+          <li>首次进入（Shizuku 授权后）先进入语言设置界面，默认英文，可随时在个性化页切换</li>
+        </ul>
+      </li>
+      <li>
+        <div class="ver">v1.0.7<em>2026-10-16</em></div>
+        <ul>
+          <li>修复：还原后仍显示旧覆盖运营商名（如 3HK / au by KDDI）的问题</li>
+          <li>运营商名称改为基于 SIM 真实 MCC/MNC 自动识别（经 Shizuku 直读，46015=中国广电、46002=中国移动等）</li>
+        </ul>
+      </li>
       <li>
         <div class="ver">v1.0.4<em>2026-10-15</em></div>
         <ul>
