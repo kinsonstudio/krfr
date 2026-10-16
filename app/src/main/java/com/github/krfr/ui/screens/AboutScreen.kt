@@ -17,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -24,6 +25,7 @@ import androidx.compose.ui.unit.sp
 import com.github.krfr.BuildConfig
 import com.github.krfr.ui.components.StatusPill
 import com.github.krfr.ui.theme.KrfrAdaptive
+import com.github.krfr.R
 import com.github.krfr.ui.theme.KrfrCardShape
 import com.github.krfr.ui.theme.clickableNoIndication
 
@@ -51,7 +53,7 @@ fun AboutScreen(onBack: () -> Unit) {
             TopAppBar(
                 title = {
                     Text(
-                        "关于",
+                        stringResource(R.string.about_title),
                         style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold)
                     )
                 },
@@ -59,7 +61,7 @@ fun AboutScreen(onBack: () -> Unit) {
                     IconButton(onClick = onBack) {
                         Icon(
                             imageVector = Icons.Default.ArrowBack,
-                            contentDescription = "返回",
+                            contentDescription = stringResource(R.string.back_cd),
                             tint = MaterialTheme.colorScheme.onSurface
                         )
                     }
@@ -124,7 +126,7 @@ fun AboutScreen(onBack: () -> Unit) {
                     }
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        "SIM 卡国家码与运营商配置工具",
+                        stringResource(R.string.app_tagline_about),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         textAlign = TextAlign.Center
@@ -134,25 +136,25 @@ fun AboutScreen(onBack: () -> Unit) {
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            AboutCard(title = "功能") {
-                FeatureLine("单 APK 安装，无需 Root")
-                FeatureLine("经 Shizuku 读写运营商配置")
-                FeatureLine("双卡分别覆盖，可一键还原")
-                FeatureLine("SIM 状态查看 · 快捷方案 · 配置备份")
+            AboutCard(title = stringResource(R.string.features)) {
+                FeatureLine(stringResource(R.string.feature_1))
+                FeatureLine(stringResource(R.string.feature_2))
+                FeatureLine(stringResource(R.string.feature_3))
+                FeatureLine(stringResource(R.string.feature_4))
             }
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            AboutCard(title = "开源") {
-                LinkRow("项目主页", "kinsonstudio/krfr") { openUrl(KRF_HOME) }
+            AboutCard(title = stringResource(R.string.open_source)) {
+                LinkRow(stringResource(R.string.project_home), "kinsonstudio/krfr") { openUrl(KRF_HOME) }
                 LinkRow("Shizuku", "RikkaApps/Shizuku") { openUrl(SHIZUKU_REPO) }
-                LinkRow("许可证", "Apache-2.0") { openUrl(APACHE_LICENSE) }
+                LinkRow(stringResource(R.string.license), "Apache-2.0") { openUrl(APACHE_LICENSE) }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
             Text(
-                "由 KinsonStudio 制作 · 基于 Nrfr 开源",
+                stringResource(R.string.made_by),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,

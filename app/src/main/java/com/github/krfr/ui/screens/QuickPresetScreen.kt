@@ -15,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -29,6 +30,7 @@ import com.github.krfr.ui.components.PageHeader
 import com.github.krfr.ui.components.SectionLabel
 import com.github.krfr.ui.components.SoftStatusBanner
 import com.github.krfr.ui.theme.KrfrAdaptive
+import com.github.krfr.R
 import com.github.krfr.ui.theme.KrfrCardShape
 import com.github.krfr.ui.theme.KrfrPill
 import com.github.krfr.ui.theme.clickableNoIndication
@@ -67,7 +69,7 @@ fun QuickPresetScreen() {
                 selectedSimCard = it.minByOrNull { c -> c.slot }
             }
             if (it.isEmpty()) {
-                errorMessage = "未检测到可用 SIM 卡，请确认 Shizuku 已授权"
+                errorMessage = context.getString(R.string.no_sim_shizuku)
             }
         }.onFailure {
             errorMessage = it.toSimCardsUserMessage()
@@ -99,16 +101,16 @@ fun QuickPresetScreen() {
                 }
                 statusIsError = false
                 statusMessage = if (result.warnings.isEmpty()) {
-                    "SIM${simCard.slot} 已应用：${preset.name}"
+                    context.getString(R.string.preset_applied, simCard.slot, preset.name)
                 } else {
-                    "SIM${simCard.slot} 已应用：${preset.name}，${result.warnings.joinToString("；")}".take(320)
+                    context.getString(R.string.preset_applied_warn, simCard.slot, preset.name, result.warnings.joinToString("；")).take(320)
                 }
             } catch (e: Exception) {
                 statusIsError = true
                 statusMessage = if (OperationState.wasCancelled()) {
-                    "操作已被强制终止"
+                    context.getString(R.string.operation_cancelled)
                 } else {
-                    "应用失败：${e.message?.lineSequence()?.firstOrNull()?.take(120) ?: "未知错误"}"
+                    context.getString(R.string.apply_failed, e.message?.lineSequence()?.firstOrNull()?.take(120) ?: context.getString(R.string.unknown_error))
                 }
                 LogStore.e("快捷方案应用异常: ${e.message.orEmpty()}")
             } finally {
@@ -126,15 +128,15 @@ fun QuickPresetScreen() {
         ) {
             item {
                 PageHeader(
-                    title = "快捷方案",
-                    subtitle = "一键应用常用国家码组合",
+                    title = stringResource(R.string.quick_title),
+                    subtitle = stringResource(R.string.quick_subtitle),
                     logoText = "QP",
                     onRefresh = { refreshTrigger += 1 }
                 )
             }
 
             item {
-                SectionLabel("应用到")
+                SectionLabel(stringResource(R.string.apply_to))
             }
 
             if (isLoading && simCards.isEmpty()) {
@@ -148,7 +150,7 @@ fun QuickPresetScreen() {
                         shadowElevation = 0.dp
                     ) {
                         Text(
-                            "正在读取 SIM…",
+                            stringResource(R.string.reading_sim),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.padding(16.dp)
@@ -183,7 +185,7 @@ fun QuickPresetScreen() {
                 }
 
                 item {
-                    SectionLabel("方案", modifier = Modifier.padding(top = 12.dp))
+                    SectionLabel(stringResource(R.string.presets), modifier = Modifier.padding(top = 12.dp))
                 }
 
                 items(QuickPresets.presets, key = { it.id }) { preset ->
@@ -198,7 +200,7 @@ fun QuickPresetScreen() {
 
                 item {
                     Text(
-                        "共 ${QuickPresets.presets.size} 个方案 · 点击卡片立即应用",
+                        stringResource(R.string.preset_count_note, QuickPresets.presets.size),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier
@@ -325,7 +327,7 @@ private fun QuickPresetRow(
                 )
             }
             Text(
-                if (applying) "应用中…" else "应用",
+                if (applying) stringResource(R.string.applying) else stringResource(R.string.apply),
                 modifier = Modifier
                     .clip(KrfrPill)
                     .background(if (enabled && !applying) KrfrAdaptive.linkSoft() else KrfrAdaptive.wash())

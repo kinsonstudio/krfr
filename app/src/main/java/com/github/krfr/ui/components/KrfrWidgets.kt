@@ -1,4 +1,5 @@
 package com.github.krfr.ui.components
+import androidx.compose.ui.res.stringResource
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
@@ -41,6 +42,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.github.krfr.ui.theme.KrfrAdaptive
+import com.github.krfr.R
 import com.github.krfr.ui.theme.KrfrCardShape
 import com.github.krfr.ui.theme.KrfrPill
 import kotlinx.coroutines.launch
@@ -129,7 +131,7 @@ fun PageHeader(
                     ) {
                         Icon(
                             Icons.Default.Refresh,
-                            contentDescription = "刷新",
+                            contentDescription = stringResource(R.string.refresh_cd),
                             tint = Color.White,
                             modifier = Modifier
                                 .size(20.dp)

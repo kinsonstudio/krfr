@@ -1,5 +1,6 @@
 package com.github.krfr
 
+import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.widget.Toast
@@ -9,6 +10,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import com.github.krfr.data.LanguageManager
 import com.github.krfr.data.SettingsStore
 import com.github.krfr.manager.CarrierConfigManager
 import com.github.krfr.manager.LogStore
@@ -16,11 +18,13 @@ import com.github.krfr.manager.OperationState
 import com.github.krfr.manager.ShizukuHelper
 import com.github.krfr.ui.MainScaffold
 import com.github.krfr.ui.screens.AboutScreen
+import com.github.krfr.ui.screens.LanguageSetupScreen
 import com.github.krfr.ui.screens.ShizukuBlockReason
 import com.github.krfr.ui.screens.ShizukuNotReadyScreen
 import com.github.krfr.ui.screens.resolveShizukuBlockReason
 import com.github.krfr.ui.theme.KrfrTheme
 import com.github.krfr.ui.theme.ThemeMode
+import com.github.krfr.ui.theme.ThemeStyle
 import org.lsposed.hiddenapibypass.HiddenApiBypass
 import rikka.shizuku.Shizuku
 
@@ -29,6 +33,9 @@ class MainActivity : ComponentActivity() {
     private var shizukuBlockReason by mutableStateOf(ShizukuBlockReason.SERVICE_NOT_RUNNING)
     private var showAbout by mutableStateOf(false)
     private var themeMode by mutableStateOf(ThemeMode.SYSTEM)
+    private var themeStyle by mutableStateOf(ThemeStyle.PAPER_GREEN)
+    private var backgroundPath by mutableStateOf<String?>(null)
+    private var appLang by mutableStateOf<String?>(null)
     private var autoPermissionRequestAttempted = false
     private var syncTriggered = false
 
@@ -37,7 +44,7 @@ class MainActivity : ComponentActivity() {
             runOnUiThread {
                 updateShizukuStatus()
                 if (grantResult != PackageManager.PERMISSION_GRANTED) {
-                    Toast.makeText(this, "未授予 Shizuku 权限", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this, getString(R.string.shizuku_permission_denied), Toast.LENGTH_LONG).show()
                 } else {
                     triggerSyncWhenShizukuReady()
                 }
@@ -56,6 +63,11 @@ class MainActivity : ComponentActivity() {
         runOnUiThread { updateShizukuStatus() }
     }
 
+    /** 首启语言向导：应用当前语言（未选时为英文默认）渲染 */
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(LanguageManager.applyLocale(newBase))
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -65,6 +77,9 @@ class MainActivity : ComponentActivity() {
         HiddenApiBypass.addHiddenApiExemptions("I")
 
         themeMode = SettingsStore.readThemeMode(this)
+        themeStyle = SettingsStore.readThemeStyle(this)
+        backgroundPath = SettingsStore.readBackgroundPath(this)
+        appLang = LanguageManager.readLanguage(this)
         LogStore.restore(applicationContext)
 
         runCatching {
@@ -78,22 +93,46 @@ class MainActivity : ComponentActivity() {
         triggerSyncWhenShizukuReady()
 
         setContent {
-            KrfrTheme(themeMode = themeMode) {
+            KrfrTheme(themeMode = themeMode, themeStyle = themeStyle) {
                 if (showAbout) {
                     AboutScreen(onBack = { showAbout = false })
-                } else if (isShizukuReady) {
+                } else if (!isShizukuReady) {
+                    ShizukuNotReadyScreen(
+                        reason = shizukuBlockReason,
+                        onRequestPermission = { requestShizukuPermission() }
+                    )
+                } else if (appLang == null) {
+                    LanguageSetupScreen(
+                        onSelected = { lang ->
+                            appLang = lang
+                            LanguageManager.writeLanguage(this, lang)
+                            recreate()
+                        }
+                    )
+                } else {
                     MainScaffold(
                         themeMode = themeMode,
                         onThemeModeChange = { mode ->
                             themeMode = mode
                             SettingsStore.writeThemeMode(this, mode)
                         },
+                        themeStyle = themeStyle,
+                        onThemeStyleChange = { style ->
+                            themeStyle = style
+                            SettingsStore.writeThemeStyle(this, style)
+                        },
+                        backgroundPath = backgroundPath,
+                        onBackgroundPathChange = { path ->
+                            backgroundPath = path
+                            SettingsStore.writeBackgroundPath(this, path)
+                        },
+                        appLang = appLang,
+                        onLangChange = { lang ->
+                            appLang = lang
+                            LanguageManager.writeLanguage(this, lang)
+                            recreate()
+                        },
                         onShowAbout = { showAbout = true }
-                    )
-                } else {
-                    ShizukuNotReadyScreen(
-                        reason = shizukuBlockReason,
-                        onRequestPermission = { requestShizukuPermission() }
                     )
                 }
             }
@@ -108,7 +147,7 @@ class MainActivity : ComponentActivity() {
 
     private fun requestShizukuPermission() {
         if (!ShizukuHelper.isBinderAvailable()) {
-            Toast.makeText(this, "请先启动 Shizuku 服务", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, getString(R.string.start_shizuku_first), Toast.LENGTH_LONG).show()
             updateShizukuStatus()
             return
         }

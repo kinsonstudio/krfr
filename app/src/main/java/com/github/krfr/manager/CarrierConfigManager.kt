@@ -734,6 +734,23 @@ object CarrierConfigManager {
      * SIM 物理数据，不受 SubInfo 显示名覆盖影响；与 SimStatusReader 同款读取方式（已验证可读 460/15）。
      */
     private fun getRealMccMncViaISub(subId: Int): String? {
+        val info = getSubInfoViaISub(subId) ?: return null
+        val mcc = reflectIntSafe(info, "getMcc")
+        val mnc = reflectIntSafe(info, "getMnc")
+        if (mcc != null && mnc != null && mcc > 0 && mnc > 0) {
+            return String.format("%03d%02d", mcc, mnc)
+        }
+        return null
+    }
+
+    /** 读取 SIM 显示名（系统设置里可编辑的卡名） */
+    fun getSimDisplayName(subId: Int): String? {
+        val info = getSubInfoViaISub(subId) ?: return null
+        return reflectStringSafe(info, "getDisplayName")?.takeIf { it.isNotBlank() }
+    }
+
+    /** 经 Shizuku 代理拿到 ISub 的 SubscriptionInfo 对象 */
+    private fun getSubInfoViaISub(subId: Int): Any? {
         return runCatching {
             val binder = Class.forName("android.os.ServiceManager")
                 .getMethod("getService", String::class.java)
@@ -746,16 +763,11 @@ object CarrierConfigManager {
                     it.name == "getActiveSubscriptionInfo" && it.parameterTypes.size == p
                 }
             }.firstOrNull() ?: return null
-            val info = when (method.parameterTypes.size) {
+            when (method.parameterTypes.size) {
                 3 -> method.invoke(iSub, subId, "com.android.shell", null)
                 2 -> method.invoke(iSub, subId, "com.android.shell")
                 else -> method.invoke(iSub, subId)
-            } ?: return null
-            val mcc = reflectIntSafe(info, "getMcc")
-            val mnc = reflectIntSafe(info, "getMnc")
-            if (mcc != null && mnc != null && mcc > 0 && mnc > 0) {
-                String.format("%03d%02d", mcc, mnc)
-            } else null
+            }
         }.getOrNull()
     }
 
@@ -764,6 +776,14 @@ object CarrierConfigManager {
             target.javaClass.methods.firstOrNull {
                 it.name == methodName && it.parameterTypes.isEmpty()
             }?.invoke(target) as? Int
+        }.getOrNull()
+    }
+
+    private fun reflectStringSafe(target: Any, methodName: String): String? {
+        return runCatching {
+            target.javaClass.methods.firstOrNull {
+                it.name == methodName && it.parameterTypes.isEmpty()
+            }?.invoke(target) as? String
         }.getOrNull()
     }
 

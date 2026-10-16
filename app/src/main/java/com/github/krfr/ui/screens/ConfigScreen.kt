@@ -1,5 +1,6 @@
 package com.github.krfr.ui.screens
 
+import android.content.Context
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
@@ -31,6 +32,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -50,6 +52,7 @@ import com.github.krfr.ui.components.PageHeader
 import com.github.krfr.ui.components.SectionLabel
 import com.github.krfr.ui.components.SoftStatusBanner
 import com.github.krfr.ui.theme.KrfrAdaptive
+import com.github.krfr.R
 import com.github.krfr.ui.theme.KrfrCardShape
 import com.github.krfr.ui.theme.KrfrPill
 import com.github.krfr.ui.theme.KrfrSelectShape
@@ -162,7 +165,7 @@ fun ConfigScreen() {
         }.onSuccess {
             simCards = it
             if (it.isEmpty()) {
-                simCardsError = "未检测到可用 SIM 卡，请确认 Shizuku 已授权"
+                simCardsError = context.getString(R.string.no_sim_shizuku)
             }
         }.onFailure {
             simCardsError = it.toSimCardsUserMessage()
@@ -203,7 +206,7 @@ fun ConfigScreen() {
         ) {
             PageHeader(
                 title = "krfr",
-                subtitle = "SIM 卡国家码 · 运营商配置",
+                subtitle = stringResource(R.string.app_tagline),
                 logoText = "K",
                 onRefresh = ::refreshSimCards
             )
@@ -229,7 +232,7 @@ fun ConfigScreen() {
                                         CarrierConfigManager.restoreAllToUnset(appContext)
                                     }
                                     statusIsError = false
-                                    statusMessage = "已还原全部 SIM 的覆盖配置（主卡 + 副卡）"
+                                    statusMessage = context.getString(R.string.reset_all_done)
                                     delay(1500)
                                     refreshSimCards()
                                     slotDrafts.clear()
@@ -241,9 +244,9 @@ fun ConfigScreen() {
                                 } catch (e: Exception) {
                                     statusIsError = true
                                     statusMessage = if (OperationState.wasCancelled()) {
-                                        "操作已被强制终止"
+                                        context.getString(R.string.operation_cancelled)
                                     } else {
-                                        "全部还原失败: ${formatErrorMessage(e)}"
+                                        context.getString(R.string.reset_all_failed, formatErrorMessage(context, e))
                                     }
                                     LogStore.e("全部还原异常: ${e.message.orEmpty()}")
                                     delay(400)
@@ -259,7 +262,7 @@ fun ConfigScreen() {
                 )
             }
 
-            SectionLabel("目标 SIM 卡")
+            SectionLabel(stringResource(R.string.sec_target_sim))
             SimCardSelector(
                 simCards = simCards,
                 selectedSimCard = effectiveSimCard,
@@ -268,7 +271,7 @@ fun ConfigScreen() {
                 onSimCardSelected = { switchToSim(it) }
             )
 
-            SectionLabel("覆盖内容")
+            SectionLabel(stringResource(R.string.sec_override))
             CountryCodeSelector(
                 selectedCountryCode = selectedCountryCode,
                 isCustomCountryCode = isCustomCountryCode,
@@ -363,7 +366,7 @@ fun ConfigScreen() {
                                 CarrierConfigManager.resetCarrierConfig(appContext, simCard.subId)
                             }
                             statusIsError = false
-                            statusMessage = buildOperationMessage("设置已还原", result.warnings)
+                            statusMessage = buildOperationMessage(context.getString(R.string.config_reset), result.warnings)
                             delay(1500)
                             refreshSimCards()
                             slotDrafts.remove(simCard.slot)
@@ -375,9 +378,9 @@ fun ConfigScreen() {
                         } catch (e: Exception) {
                             statusIsError = true
                             statusMessage = if (OperationState.wasCancelled()) {
-                                "操作已被强制终止"
+                                context.getString(R.string.operation_cancelled)
                             } else {
-                                "还原失败: ${formatErrorMessage(e)}"
+                                context.getString(R.string.reset_failed, formatErrorMessage(context, e))
                             }
                             LogStore.e("还原异常: ${e.message.orEmpty()}")
                             delay(400)
@@ -417,16 +420,16 @@ fun ConfigScreen() {
                                 )
                             }
                             statusIsError = false
-                            statusMessage = buildOperationMessage("设置已保存", result.warnings)
+                            statusMessage = buildOperationMessage(context.getString(R.string.config_saved), result.warnings)
                             slotDrafts[simCard.slot] = currentDraft()
                             delay(400)
                             refreshSimCards()
                         } catch (e: Exception) {
                             statusIsError = true
                             statusMessage = if (OperationState.wasCancelled()) {
-                                "操作已被强制终止"
+                                context.getString(R.string.operation_cancelled)
                             } else {
-                                "保存失败: ${formatErrorMessage(e)}"
+                                context.getString(R.string.save_failed, formatErrorMessage(context, e))
                             }
                             LogStore.e("保存异常: ${e.message.orEmpty()}")
                             delay(400)
@@ -452,10 +455,11 @@ private fun SimCardSelector(
     onExpandedChange: (Boolean) -> Unit,
     onSimCardSelected: (SimCardInfo) -> Unit
 ) {
+    val context = LocalContext.current
     val sheetState = rememberModalBottomSheetState()
 
     SelectField(
-        label = "SIM 卡",
+        label = stringResource(R.string.sim_card_label),
         value = selectedSimCard?.let { "SIM ${it.slot} · ${it.carrierName}" } ?: "",
         expanded = isExpanded,
         iconGlyph = "SIM",
@@ -470,7 +474,7 @@ private fun SimCardSelector(
             shape = KrfrCardShape,
             tonalElevation = 0.dp
         ) {
-            SheetTitle("选择 SIM 卡")
+            SheetTitle(stringResource(R.string.select_sim_title))
             LazyColumn(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -480,7 +484,7 @@ private fun SimCardSelector(
                 items(simCards) { simCard ->
                     SelectorSheetOption(
                         text = "SIM ${simCard.slot} · ${simCard.carrierName}",
-                        supportingText = formatConfigSummary(simCard),
+                        supportingText = formatConfigSummary(context, simCard),
                         selected = selectedSimCard?.subId == simCard.subId,
                         onClick = {
                             onSimCardSelected(simCard)
@@ -518,7 +522,7 @@ private fun CurrentConfigsOverview(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    "当前状态",
+                    stringResource(R.string.current_state),
                     style = MaterialTheme.typography.labelMedium.copy(
                         fontWeight = FontWeight.SemiBold,
                         letterSpacing = 0.6.sp
@@ -548,7 +552,7 @@ private fun CurrentConfigsOverview(
                 }
                 simCards.isEmpty() -> {
                     Text(
-                        if (isLoading) "正在读取 SIM…" else "未检测到可用 SIM 卡",
+                        if (isLoading) stringResource(R.string.reading_sim) else stringResource(R.string.no_sim),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
@@ -589,6 +593,7 @@ private fun StatusBusySpinner(color: Color) {
 
 @Composable
 private fun SimConfigSummary(simCard: SimCardInfo) {
+    val context = LocalContext.current
     val hasOverride = simCard.currentConfig.isNotEmpty()
 
     Row(
@@ -629,7 +634,7 @@ private fun SimConfigSummary(simCard: SimCardInfo) {
                 overflow = TextOverflow.Ellipsis
             )
             Text(
-                formatConfigSummary(simCard),
+                formatConfigSummary(context, simCard),
                 style = MaterialTheme.typography.bodySmall.copy(
                     fontFamily = if (hasOverride) FontFamily.Monospace else FontFamily.SansSerif
                 ),
@@ -640,7 +645,7 @@ private fun SimConfigSummary(simCard: SimCardInfo) {
         }
 
         Text(
-            if (hasOverride) "已覆盖" else "默认",
+            if (hasOverride) stringResource(R.string.overridden) else stringResource(R.string.status_default),
             modifier = Modifier
                 .clip(KrfrPill)
                 .background(if (hasOverride) KrfrAdaptive.linkSoft() else KrfrAdaptive.card())
@@ -651,9 +656,9 @@ private fun SimConfigSummary(simCard: SimCardInfo) {
     }
 }
 
-private fun formatConfigSummary(simCard: SimCardInfo): String {
+private fun formatConfigSummary(context: Context, simCard: SimCardInfo): String {
     if (simCard.currentConfig.isEmpty()) {
-        return "无覆盖配置"
+        return context.getString(R.string.no_override)
     }
     return simCard.currentConfig.entries.joinToString(" · ") { (key, value) ->
         "$key: $value"
@@ -673,7 +678,7 @@ private fun CountryCodeSelector(
 ) {
     val sheetState = rememberModalBottomSheetState()
     val displayText = when {
-        isCustomCountryCode -> "自定义"
+        isCustomCountryCode -> stringResource(R.string.custom)
         selectedCountryCode.isEmpty() -> ""
         else -> CountryPresets.countries.find { it.code == selectedCountryCode }
             ?.let { "${it.name} (${it.code})" }
@@ -681,7 +686,7 @@ private fun CountryCodeSelector(
     }
 
     SelectField(
-        label = "国家码",
+        label = stringResource(R.string.country_code_label),
         value = displayText,
         expanded = isExpanded,
         iconGlyph = "CN",
@@ -696,7 +701,7 @@ private fun CountryCodeSelector(
             shape = KrfrCardShape,
             tonalElevation = 0.dp
         ) {
-            SheetTitle("选择国家码")
+            SheetTitle(stringResource(R.string.select_country_title))
             LazyColumn(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -716,7 +721,7 @@ private fun CountryCodeSelector(
                 item {
                     Divider(modifier = Modifier.padding(vertical = 4.dp))
                     SelectorSheetOption(
-                        text = "自定义",
+                        text = stringResource(R.string.custom),
                         selected = isCustomCountryCode,
                         onClick = {
                             onCustomSelected()
@@ -739,7 +744,7 @@ private fun CustomCountryCodeInput(
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
-        label = { Text("自定义国家码（2 位字母）") },
+        label = { Text(stringResource(R.string.custom_country_hint)) },
         keyboardOptions = KeyboardOptions(
             keyboardType = KeyboardType.Text,
             imeAction = ImeAction.Done
@@ -770,7 +775,7 @@ private fun CarrierSelector(
     val sheetState = rememberModalBottomSheetState()
 
     SelectField(
-        label = "运营商名称",
+        label = stringResource(R.string.carrier_name_label),
         value = selectedCarrier?.name ?: "",
         expanded = isExpanded,
         iconGlyph = "OP",
@@ -785,7 +790,7 @@ private fun CarrierSelector(
             shape = KrfrCardShape,
             tonalElevation = 0.dp
         ) {
-            SheetTitle("选择运营商")
+            SheetTitle(stringResource(R.string.select_carrier_title))
             LazyColumn(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -870,7 +875,7 @@ private fun SelectField(
             )
             Spacer(modifier = Modifier.height(2.dp))
             Text(
-                value.ifEmpty { "点击选择" },
+                value.ifEmpty { stringResource(R.string.tap_to_select) },
                 style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold),
                 color = if (value.isEmpty()) {
                     MaterialTheme.colorScheme.onSurfaceVariant
@@ -1000,7 +1005,7 @@ private fun CustomCarrierNameInput(
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
-        label = { Text("自定义运营商名称") },
+        label = { Text(stringResource(R.string.custom_carrier_hint)) },
         shape = KrfrSelectShape,
         modifier = Modifier.fillMaxWidth()
     )
@@ -1011,13 +1016,13 @@ private fun buildOperationMessage(successMessage: String, warnings: List<String>
     return "$successMessage，${warnings.joinToString("；")}".take(320)
 }
 
-private fun formatErrorMessage(error: Throwable): String {
+private fun formatErrorMessage(context: Context, error: Throwable): String {
     var current: Throwable = error
     while (current.cause != null && current.message.isNullOrBlank()) {
         current = current.cause!!
     }
     return current.message?.lineSequence()?.firstOrNull()?.take(160)
-        ?: current.javaClass.simpleName.ifBlank { "未知错误" }
+        ?: current.javaClass.simpleName.ifBlank { context.getString(R.string.unknown_error) }
 }
 
 /** 列表内的「一键还原全部 SIM」入口，避免固定在底部遮挡内容 */
@@ -1060,18 +1065,18 @@ private fun ResetAllButton(
             }
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    "一键还原全部 SIM",
+                    stringResource(R.string.reset_all),
                     style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold),
                     color = if (enabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Text(
-                    "主卡 + 副卡一起恢复默认",
+                    stringResource(R.string.reset_all_desc),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
             Text(
-                if (isApplying) "还原中…" else "还原",
+                if (isApplying) stringResource(R.string.resetting) else stringResource(R.string.reset_btn),
                 modifier = Modifier
                     .clip(KrfrPill)
                     .background(if (enabled && !isApplying) KrfrAdaptive.linkSoft() else KrfrAdaptive.wash())
@@ -1120,9 +1125,9 @@ private fun ActionButtons(
         ) {
             Text(
                 when {
-                    isApplyingConfig && activeAction == "reset" -> "还原中…"
-                    isApplyingConfig -> "请稍候…"
-                    else -> "还原配置"
+                    isApplyingConfig && activeAction == "reset" -> stringResource(R.string.resetting)
+                    isApplyingConfig -> stringResource(R.string.please_wait)
+                    else -> stringResource(R.string.reset_config)
                 },
                 style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold)
             )
@@ -1155,9 +1160,9 @@ private fun ActionButtons(
         ) {
             Text(
                 when {
-                    isApplyingConfig && activeAction == "save" -> "保存中…"
-                    isApplyingConfig -> "请稍候…"
-                    else -> "保存配置"
+                    isApplyingConfig && activeAction == "save" -> stringResource(R.string.saving)
+                    isApplyingConfig -> stringResource(R.string.please_wait)
+                    else -> stringResource(R.string.save_config)
                 },
                 style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold)
             )

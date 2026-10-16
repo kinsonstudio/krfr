@@ -1,8 +1,8 @@
 {
   "app": "krfr",
-  "latest_version": "1.0.7",
-  "version_code": 8,
+  "latest_version": "1.0.8",
+  "version_code": 9,
   "update_url": "https://taiai.asia/krfr.apk",
   "release_date": "2026-10-16",
-  "changelog": "v1.0.7：修复还原后仍显示旧覆盖运营商名——名称按真实 SIM 的 MCC/MNC（Shizuku 直读）解析，不再读残留 SubInfo 名"
+  "changelog": "v1.0.8：新增个性化页面（多配色主题·自定义背景图·SIM 卡显示名设置），支持英文/简体/繁体三语，首启语言向导默认英文"
 }

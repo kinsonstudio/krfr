@@ -1,5 +1,6 @@
 package com.github.krfr.manager
 
+import android.content.Context
 import android.os.IBinder
 import android.telephony.TelephonyManager
 import com.github.krfr.model.SimCardInfo
@@ -243,14 +244,13 @@ object SimStatusReader {
         }
     }
 
-    /** 信号等级 0-4 → 描述 */
-    fun signalText(level: Int): String {
+    /** 信号等级 0-4 → 描述（多语言） */
+    fun signalText(context: Context, level: Int): String {
         return when (level) {
-            0 -> "无信号"
-            1 -> "弱"
-            2 -> "一般"
-            3 -> "良好"
-            else -> "强"
+            0 -> context.getString(com.github.krfr.R.string.signal_none)
+            1 -> context.getString(com.github.krfr.R.string.signal_weak)
+            2, 3 -> context.getString(com.github.krfr.R.string.signal_medium)
+            else -> context.getString(com.github.krfr.R.string.signal_strong)
         }
     }
 }

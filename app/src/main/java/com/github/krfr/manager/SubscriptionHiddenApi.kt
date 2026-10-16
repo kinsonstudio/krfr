@@ -28,6 +28,27 @@ internal object SubscriptionHiddenApi {
     private val RESTORE_RETRY_DELAYS_MS = longArrayOf(0L, 400L, 1200L)
     private val syncShellIdentity = ThreadLocal.withInitial { false }
 
+    /**
+     * 设置 SIM 卡显示名（系统「SIM 卡信息」里可编辑的卡名，状态栏显示）。
+     * 经 Shizuku shell 身份调用 ISub.setDisplayName；name 传空串表示清除回默认。
+     */
+    fun setSimDisplayName(subId: Int, name: String?): Boolean {
+        val display = name ?: ""
+        return runCatching {
+            val binder = Class.forName("android.os.ServiceManager")
+                .getMethod("getService", String::class.java)
+                .invoke(null, "isub") as IBinder
+            val stubClass = Class.forName(ISUB_STUB)
+            val iSub = stubClass.getMethod("asInterface", IBinder::class.java)
+                .invoke(null, ShizukuBinderWrapper(binder))
+            val method = iSub.javaClass.methods.firstOrNull {
+                it.name == "setDisplayName" && it.parameterTypes.size == 3
+            } ?: throw IllegalStateException("ISub.setDisplayName not found")
+            method.invoke(iSub, subId, display, "com.android.shell")
+            true
+        }.getOrDefault(false)
+    }
+
     fun syncAfterOverride(context: Context, subId: Int, bundle: PersistableBundle?) {
         val carrierName = bundle?.let { readOverrideCarrierName(it) }
         scheduleSync(context, subId, carrierName, blocking = false, useShellIdentity = false)

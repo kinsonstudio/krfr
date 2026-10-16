@@ -1,5 +1,6 @@
 package com.github.krfr.ui
 
+import com.github.krfr.R
 import android.app.Activity
 import android.app.Dialog
 import android.content.Context
@@ -45,7 +46,7 @@ object HongguoStyleUpdateDialog {
         }
 
         val kicker = TextView(act).apply {
-            text = "有更新"
+            text = act.getString(R.string.update_available)
             textSize = 11f
             letterSpacing = 0.04f
             setTypeface(Typeface.DEFAULT, Typeface.BOLD)
@@ -55,7 +56,7 @@ object HongguoStyleUpdateDialog {
             includeFontPadding = false
         }
         val ver = TextView(act).apply {
-            text = versionLine(current, release.version, p)
+            text = versionLine(act, current, release.version, p)
             textSize = 13f
             gravity = Gravity.END
             includeFontPadding = false
@@ -70,7 +71,7 @@ object HongguoStyleUpdateDialog {
         }
         root.addView(head)
 
-        val notes = noteLines(release.notes)
+        val notes = noteLines(act, release.notes)
         val logList = LinearLayout(act).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(0, 0, dp(act, 12f), 0)
@@ -128,7 +129,7 @@ object HongguoStyleUpdateDialog {
             addView(fill, FrameLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT))
         }
         val dlStatus = TextView(act).apply {
-            text = "准备下载"
+            text = act.getString(R.string.update_ready)
             textSize = 12f
             setTextColor(p.text2)
         }
@@ -168,8 +169,8 @@ object HongguoStyleUpdateDialog {
             isClickable = true
             isFocusable = true
         }
-        val later = pill("稍后", p.btn2, p.text)
-        val go = pill("去更新", p.accent, p.onAccent)
+        val later = pill(act.getString(R.string.update_later), p.btn2, p.text)
+        val go = pill(act.getString(R.string.update_go), p.accent, p.onAccent)
         later.layoutParams = LinearLayout.LayoutParams(0, dp(act, 44f), 1f).apply { rightMargin = dp(act, 5f) }
         go.layoutParams = LinearLayout.LayoutParams(0, dp(act, 44f), 1f).apply { leftMargin = dp(act, 5f) }
         actions.addView(later)
@@ -178,7 +179,7 @@ object HongguoStyleUpdateDialog {
             topMargin = dp(act, 18f)
         })
         root.addView(TextView(act).apply {
-            text = "只提示模块本身，不会改系统安装包"
+            text = act.getString(R.string.update_hint_note)
             textSize = 11f
             setTextColor(p.text2)
             gravity = Gravity.CENTER
@@ -226,19 +227,19 @@ object HongguoStyleUpdateDialog {
             if (downloading) return
             downloading = true
             cancelled.set(false)
-            kicker.text = "下载中"
+            kicker.text = act.getString(R.string.update_downloading)
             logBox.visibility = View.GONE
             dlBox.visibility = View.VISIBLE
-            dlStatus.text = "正在下载安装包"
+            dlStatus.text = act.getString(R.string.update_downloading_pkg)
             setProgress(0, release.sizeBytes)
-            val cancelBtn = pill("取消", p.btn2, p.text)
+            val cancelBtn = pill(act.getString(R.string.update_cancel), p.btn2, p.text)
             showActions(cancelBtn)
             cancelBtn.setOnClickListener {
                 cancelled.set(true)
                 downloading = false
-                kicker.text = "已取消"
-                dlStatus.text = "下载已取消"
-                val retry = pill("重新下载", p.accent, p.onAccent)
+                kicker.text = act.getString(R.string.update_cancelled)
+                dlStatus.text = act.getString(R.string.update_cancel_note)
+                val retry = pill(act.getString(R.string.update_retry), p.accent, p.onAccent)
                 retry.setOnClickListener { startDownload() }
                 showActions(retry)
             }
@@ -251,15 +252,15 @@ object HongguoStyleUpdateDialog {
                     main.post {
                         if (act.isFinishing) return@post
                         downloading = false
-                        kicker.text = "下载完成"
-                        dlStatus.text = "可以安装"
+                        kicker.text = act.getString(R.string.update_done)
+                        dlStatus.text = act.getString(R.string.update_install_ready)
                         setProgress(file.length(), file.length())
-                        val install = pill("安装", p.accent, p.onAccent)
+                        val install = pill(act.getString(R.string.update_install), p.accent, p.onAccent)
                         install.setOnClickListener {
                             try {
                                 AppUpdateManager.installApk(act, file)
                             } catch (e: Exception) {
-                                Toast.makeText(act, e.message ?: "安装失败", Toast.LENGTH_LONG).show()
+                                Toast.makeText(act, e.message ?: act.getString(R.string.update_install_failed), Toast.LENGTH_LONG).show()
                             }
                         }
                         showActions(install)
@@ -268,10 +269,10 @@ object HongguoStyleUpdateDialog {
                     main.post {
                         downloading = false
                         if (cancelled.get()) return@post
-                        kicker.text = "有更新"
-                        dlStatus.text = "下载失败"
-                        Toast.makeText(act, e.message ?: "下载失败", Toast.LENGTH_LONG).show()
-                        val retry = pill("重新下载", p.accent, p.onAccent)
+                        kicker.text = act.getString(R.string.update_available)
+                        dlStatus.text = act.getString(R.string.update_dl_failed)
+                        Toast.makeText(act, e.message ?: act.getString(R.string.update_dl_failed), Toast.LENGTH_LONG).show()
+                        val retry = pill(act.getString(R.string.update_retry), p.accent, p.onAccent)
                         retry.setOnClickListener { startDownload() }
                         showActions(retry)
                     }
@@ -303,11 +304,11 @@ object HongguoStyleUpdateDialog {
         dialog.show()
     }
 
-    private fun noteLines(raw: String): List<String> {
+    private fun noteLines(act: Activity, raw: String): List<String> {
         val lines = raw.replace("\r\n", "\n").lines()
             .map { it.trim().trimStart('#', '-', '*', ' ') }
             .filter { it.isNotEmpty() }
-        return lines.ifEmpty { listOf("修复与体验更新", "建议更新到最新版本后再使用") }
+        return lines.ifEmpty { listOf(act.getString(R.string.update_default_note1), act.getString(R.string.update_default_note2)) }
     }
 
     private fun noteRow(ctx: Context, line: String, p: Palette, last: Boolean): LinearLayout {
@@ -331,7 +332,7 @@ object HongguoStyleUpdateDialog {
         return row
     }
 
-    private fun versionLine(current: String, latest: String, p: Palette): SpannableStringBuilder {
+    private fun versionLine(act: Activity, current: String, latest: String, p: Palette): SpannableStringBuilder {
         val s = SpannableStringBuilder()
         fun add(text: String, color: Int, bold: Boolean = false) {
             val start = s.length
@@ -339,9 +340,9 @@ object HongguoStyleUpdateDialog {
             s.setSpan(ForegroundColorSpan(color), start, s.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
             if (bold) s.setSpan(StyleSpan(Typeface.BOLD), start, s.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
         }
-        add("当前 ", p.text2)
+        add(act.getString(R.string.update_from), p.text2)
         add(current, p.text, true)
-        add("  →  最新 ", p.text2)
+        add(act.getString(R.string.update_to), p.text2)
         add(latest, p.text, true)
         return s
     }

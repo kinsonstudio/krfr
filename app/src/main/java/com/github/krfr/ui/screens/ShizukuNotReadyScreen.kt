@@ -19,10 +19,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.github.krfr.manager.ShizukuHelper
 import com.github.krfr.ui.theme.KrfrAdaptive
+import com.github.krfr.R
 import com.github.krfr.ui.theme.KrfrPill
 
 private const val SHIZUKU_RELEASES = "https://github.com/RikkaApps/Shizuku/releases"
@@ -40,19 +42,19 @@ fun ShizukuNotReadyScreen(
 ) {
     val context = LocalContext.current
     val title = when (reason) {
-        ShizukuBlockReason.NOT_INSTALLED -> "未安装 Shizuku"
-        ShizukuBlockReason.SERVICE_NOT_RUNNING -> "Shizuku 未运行"
-        ShizukuBlockReason.PERMISSION_NOT_GRANTED -> "需要 Shizuku 授权"
+        ShizukuBlockReason.NOT_INSTALLED -> stringResource(R.string.shizuku_not_installed)
+        ShizukuBlockReason.SERVICE_NOT_RUNNING -> stringResource(R.string.shizuku_not_running)
+        ShizukuBlockReason.PERMISSION_NOT_GRANTED -> stringResource(R.string.shizuku_need_permission)
     }
     val detail = when (reason) {
-        ShizukuBlockReason.NOT_INSTALLED -> "本应用依赖 Shizuku。请先安装后再返回。"
-        ShizukuBlockReason.SERVICE_NOT_RUNNING -> "已检测到本机 Shizuku，请先启动或完成配对，再返回本应用。"
-        ShizukuBlockReason.PERMISSION_NOT_GRANTED -> "服务已运行。点击下方按钮，在弹窗中允许本应用即可。"
+        ShizukuBlockReason.NOT_INSTALLED -> stringResource(R.string.shizuku_dl_first)
+        ShizukuBlockReason.SERVICE_NOT_RUNNING -> stringResource(R.string.shizuku_start_first)
+        ShizukuBlockReason.PERMISSION_NOT_GRANTED -> stringResource(R.string.shizuku_allow)
     }
     val actionLabel = when (reason) {
-        ShizukuBlockReason.NOT_INSTALLED -> "去下载"
-        ShizukuBlockReason.SERVICE_NOT_RUNNING -> "打开 Shizuku"
-        ShizukuBlockReason.PERMISSION_NOT_GRANTED -> "请求授权"
+        ShizukuBlockReason.NOT_INSTALLED -> stringResource(R.string.go_download)
+        ShizukuBlockReason.SERVICE_NOT_RUNNING -> stringResource(R.string.open_shizuku)
+        ShizukuBlockReason.PERMISSION_NOT_GRANTED -> stringResource(R.string.request_permission)
     }
 
     Surface(
