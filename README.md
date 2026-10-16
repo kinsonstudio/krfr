@@ -20,11 +20,12 @@
 
 ## 📥 下载
 
-> 点击下方按钮，跳转到 GitHub Releases 下载最新版本
+> 点击下方按钮，跳转到官网下载页或 GitHub Releases 下载最新版本
 
 <div align="center">
 
-### [🚀 前往 GitHub Releases 下载](https://github.com/kinsonstudio/krfr/releases/latest)
+[![官网下载页](https://img.shields.io/badge/官网下载页-2F6B5E?style=for-the-badge&logo=internet-explorer&logoColor=white)](https://taiai.asia/krfr.html)
+[![GitHub Releases](https://img.shields.io/badge/GitHub_Releases-8A7A3C?style=for-the-badge&logo=github&logoColor=white)](https://github.com/kinsonstudio/krfr/releases/latest)
 
 </div>
 
