@@ -43,9 +43,11 @@
 
 <div align="center">
 
-<!-- 截图占位：配置页 -->
+<img src="docs/krfr-screen-1.jpg" width="280" alt="krfr 配置页：双卡独立配置国家码与运营商" style="border-radius: 34px; border: 9px solid #23262a; box-shadow: 0 18px 40px rgba(20, 32, 28, 0.28);" />
 
-<!-- 截图占位：SIM 状态页 -->
+<br/>
+
+*配置页 · 双卡独立配置国家码与运营商（SIM1 中国广电 / SIM2 中国移动）*
 
 </div>
 
