@@ -42,9 +42,13 @@ internal object SubscriptionHiddenApi {
             val iSub = stubClass.getMethod("asInterface", IBinder::class.java)
                 .invoke(null, ShizukuBinderWrapper(binder))
             val method = iSub.javaClass.methods.firstOrNull {
-                it.name == "setDisplayName" && it.parameterTypes.size == 3
+                it.name == "setDisplayName" && it.parameterTypes.size in 3..4
             } ?: throw IllegalStateException("ISub.setDisplayName not found")
-            method.invoke(iSub, subId, display, "com.android.shell")
+            // ISub.setDisplayName 真实签名：setDisplayName(String displayName, int subId, String callingPackage[, String callingFeatureId])
+            when (method.parameterTypes.size) {
+                4 -> method.invoke(iSub, display, subId, "com.android.shell", null)
+                else -> method.invoke(iSub, display, subId, "com.android.shell")
+            }
             true
         }.getOrDefault(false)
     }
