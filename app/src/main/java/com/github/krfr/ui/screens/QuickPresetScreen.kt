@@ -20,6 +20,9 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.github.krfr.data.LanguageManager
+import com.github.krfr.data.descFor
+import com.github.krfr.data.nameFor
 import com.github.krfr.data.QuickPresets
 import com.github.krfr.manager.CarrierConfigManager
 import com.github.krfr.manager.LogStore
@@ -84,6 +87,7 @@ fun QuickPresetScreen() {
     }
 
     fun applyPreset(preset: QuickPresets.QuickPreset) {
+        val lang = LanguageManager.currentLang(appContext)
         val simCard = selectedSimCard ?: return
         if (isApplying || !OperationState.begin()) return
         coroutineScope.launch {
@@ -101,9 +105,9 @@ fun QuickPresetScreen() {
                 }
                 statusIsError = false
                 statusMessage = if (result.warnings.isEmpty()) {
-                    context.getString(R.string.preset_applied, simCard.slot, preset.name)
+                    context.getString(R.string.preset_applied, simCard.slot, preset.nameFor(lang))
                 } else {
-                    context.getString(R.string.preset_applied_warn, simCard.slot, preset.name, result.warnings.joinToString("；")).take(320)
+                    context.getString(R.string.preset_applied_warn, simCard.slot, preset.nameFor(lang), result.warnings.joinToString("；")).take(320)
                 }
             } catch (e: Exception) {
                 statusIsError = true
@@ -279,6 +283,7 @@ private fun QuickPresetRow(
     enabled: Boolean,
     onClick: () -> Unit
 ) {
+    val lang = LanguageManager.currentLang(LocalContext.current)
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = KrfrCardShape,
@@ -313,13 +318,13 @@ private fun QuickPresetRow(
             }
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    preset.name,
+                    preset.nameFor(lang),
                     style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold),
                     color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 1
                 )
                 Text(
-                    preset.description,
+                    preset.descFor(lang),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,

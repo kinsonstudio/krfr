@@ -42,6 +42,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.github.krfr.data.CountryPresets
+import com.github.krfr.data.LanguageManager
+import com.github.krfr.data.descFor
+import com.github.krfr.data.nameFor
 import com.github.krfr.data.PresetCarriers
 import com.github.krfr.manager.CarrierConfigManager
 import com.github.krfr.manager.LogStore
@@ -660,8 +663,13 @@ private fun formatConfigSummary(context: Context, simCard: SimCardInfo): String 
     if (simCard.currentConfig.isEmpty()) {
         return context.getString(R.string.no_override)
     }
+    fun keyLabel(key: String): String = when (key) {
+        "国家码" -> context.getString(R.string.country_code_label)
+        "运营商名称" -> context.getString(R.string.carrier_name_label)
+        else -> key
+    }
     return simCard.currentConfig.entries.joinToString(" · ") { (key, value) ->
-        "$key: $value"
+        "${keyLabel(key)}: $value"
     }
 }
 
@@ -676,12 +684,14 @@ private fun CountryCodeSelector(
     onCountryCodeSelected: (String) -> Unit,
     onCustomSelected: () -> Unit
 ) {
+    val context = LocalContext.current
+    val lang = LanguageManager.currentLang(context)
     val sheetState = rememberModalBottomSheetState()
     val displayText = when {
         isCustomCountryCode -> stringResource(R.string.custom)
         selectedCountryCode.isEmpty() -> ""
         else -> CountryPresets.countries.find { it.code == selectedCountryCode }
-            ?.let { "${it.name} (${it.code})" }
+            ?.let { "${it.nameFor(lang)} (${it.code})" }
             ?: selectedCountryCode
     }
 
@@ -710,7 +720,7 @@ private fun CountryCodeSelector(
             ) {
                 items(CountryPresets.countries) { countryInfo ->
                     SelectorSheetOption(
-                        text = "${countryInfo.name} (${countryInfo.code})",
+                        text = "${countryInfo.nameFor(lang)} (${countryInfo.code})",
                         selected = !isCustomCountryCode && selectedCountryCode == countryInfo.code,
                         onClick = {
                             onCountryCodeSelected(countryInfo.code)
@@ -766,17 +776,20 @@ private fun CarrierSelector(
     onExpandedChange: (Boolean) -> Unit,
     onCarrierSelected: (PresetCarriers.CarrierPreset) -> Unit
 ) {
-    val carrierMenuItems = remember(selectedCountryCode, isCustomCountryCode) {
+    val context = LocalContext.current
+    val lang = LanguageManager.currentLang(context)
+    val carrierMenuItems = remember(selectedCountryCode, isCustomCountryCode, lang) {
         buildCarrierMenuItems(
             selectedCountryCode = selectedCountryCode,
-            isCustomCountryCode = isCustomCountryCode
+            isCustomCountryCode = isCustomCountryCode,
+            lang = lang
         )
     }
     val sheetState = rememberModalBottomSheetState()
 
     SelectField(
         label = stringResource(R.string.carrier_name_label),
-        value = selectedCarrier?.name ?: "",
+        value = selectedCarrier?.nameFor(lang) ?: "",
         expanded = isExpanded,
         iconGlyph = "OP",
         onClick = { onExpandedChange(true) }
@@ -809,7 +822,7 @@ private fun CarrierSelector(
                         }
                         is CarrierMenuItem.Option -> {
                             SelectorSheetOption(
-                                text = item.carrier.name,
+                                text = item.carrier.nameFor(lang),
                                 selected = selectedCarrier == item.carrier,
                                 onClick = {
                                     onCarrierSelected(item.carrier)
@@ -950,12 +963,13 @@ private fun SelectorSheetOption(
 
 private fun buildCarrierMenuItems(
     selectedCountryCode: String = "",
-    isCustomCountryCode: Boolean = false
+    isCustomCountryCode: Boolean = false,
+    lang: String = "zh-CN"
 ): List<CarrierMenuItem> {
     val carriersByRegion = PresetCarriers.presets
         .filter { it.region.isNotEmpty() }
         .groupBy { it.region }
-    val countryNames = CountryPresets.countries.associate { it.code to it.name }
+    val countryNames = CountryPresets.countries.associate { it.code to it.nameFor(lang) }
     val result = mutableListOf<CarrierMenuItem>()
 
     val regionOrder = when {

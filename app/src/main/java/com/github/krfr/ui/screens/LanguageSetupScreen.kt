@@ -27,6 +27,7 @@ import com.github.krfr.ui.theme.KrfrPill
  */
 @Composable
 fun LanguageSetupScreen(
+    initialLang: String = "en",
     onSelected: (String) -> Unit
 ) {
     Surface(
@@ -76,19 +77,22 @@ fun LanguageSetupScreen(
 
             LanguageOption(
                 title = "English",
-                subtitle = "Default",
+                subtitle = "English",
+                selected = initialLang == "en",
                 onClick = { onSelected("en") }
             )
             Spacer(modifier = Modifier.height(12.dp))
             LanguageOption(
                 title = "简体中文",
-                subtitle = "简体",
+                subtitle = "简体中文",
+                selected = initialLang == "zh-CN",
                 onClick = { onSelected("zh-CN") }
             )
             Spacer(modifier = Modifier.height(12.dp))
             LanguageOption(
                 title = "繁體中文",
-                subtitle = "繁體",
+                subtitle = "繁體中文",
+                selected = initialLang == "zh-TW",
                 onClick = { onSelected("zh-TW") }
             )
 
@@ -107,13 +111,17 @@ fun LanguageSetupScreen(
 private fun LanguageOption(
     title: String,
     subtitle: String,
+    selected: Boolean,
     onClick: () -> Unit
 ) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = KrfrCardShape,
-        color = MaterialTheme.colorScheme.surface,
-        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+        color = if (selected) KrfrAdaptive.linkSoft() else MaterialTheme.colorScheme.surface,
+        border = androidx.compose.foundation.BorderStroke(
+            1.dp,
+            if (selected) KrfrAdaptive.link() else MaterialTheme.colorScheme.outlineVariant
+        ),
         tonalElevation = 0.dp,
         shadowElevation = 0.dp
     ) {

@@ -32,6 +32,25 @@ object LanguageManager {
         }
     }
 
+    /** 手机系统默认语言对应的应用语言：简体→zh-CN、繁体→zh-TW、其他→en */
+    fun systemDefaultLang(context: Context): String {
+        val locale = Locale.getDefault()
+        return if (locale.language == "zh") {
+            if (locale.country == "TW" || locale.country == "HK" || locale.country == "MO") {
+                "zh-TW"
+            } else {
+                "zh-CN"
+            }
+        } else {
+            "en"
+        }
+    }
+
+    /** 当前生效语言：已设置用设置值，否则自动匹配系统语言 */
+    fun currentLang(context: Context): String {
+        return readLanguage(context) ?: systemDefaultLang(context)
+    }
+
     /** 把 context 的资源语言切到当前设置（attachBaseContext 用） */
     fun applyLocale(base: Context): Context {
         val lang = readLanguage(base)

@@ -9,6 +9,7 @@ import android.provider.Settings
 import android.telephony.SubscriptionManager
 import android.telephony.TelephonyManager
 import android.telephony.CarrierConfigManager as AndroidCarrierConfigManager
+import com.github.krfr.data.LanguageManager
 import com.github.krfr.model.SimCardInfo
 import org.lsposed.hiddenapibypass.HiddenApiBypass
 import rikka.shizuku.Shizuku
@@ -54,7 +55,7 @@ object CarrierConfigManager {
         runCatching { scrubOrphanBadges(context) }
             .onFailure { LogStore.w("清除残留角标失败: ${it.message.orEmpty()}") }
 
-        val isubSnapshot = getIsubSnapshotByDumpsys()
+        val isubSnapshot = getIsubSnapshotByDumpsys(context)
         val configsByPhoneId = getCurrentConfigsByDumpsys()
         val simCards = mutableListOf<SimCardInfo>()
 
@@ -169,7 +170,7 @@ object CarrierConfigManager {
                 return slotIndex
             }
         }
-        return getIsubSnapshotByDumpsys()?.slotToSubId?.entries
+        return getIsubSnapshotByDumpsys(context)?.slotToSubId?.entries
             ?.firstOrNull { it.value == subId }
             ?.key
     }
@@ -411,7 +412,7 @@ object CarrierConfigManager {
         phoneId: Int,
         forceDumpsysRefresh: Boolean = false
     ): Map<String, String> {
-        val subId = getIsubSnapshotByDumpsys()?.slotToSubId?.get(phoneId)
+        val subId = getIsubSnapshotByDumpsys(context)?.slotToSubId?.get(phoneId)
             ?: getSubIdForSlotViaApi(context, phoneId)
         // dumpsys 的 mOverrideConfigs 是 CarrierConfigService 的真实覆盖表，优先；
         // loader 合并缓存可能在还原后残留旧值（需 notify 刷新），只作兜底。
@@ -436,7 +437,7 @@ object CarrierConfigManager {
     }
 
     private fun getPhoneIdForSubId(context: Context, subId: Int): Int? {
-        getIsubSnapshotByDumpsys()?.slotToSubId?.entries?.firstOrNull { it.value == subId }?.key?.let {
+        getIsubSnapshotByDumpsys(context)?.slotToSubId?.entries?.firstOrNull { it.value == subId }?.key?.let {
             return it
         }
         for (slotIndex in 0..1) {
@@ -465,7 +466,7 @@ object CarrierConfigManager {
         return "'" + value.replace("'", "'\\''") + "'"
     }
 
-    private fun getIsubSnapshotByDumpsys(): IsubSnapshot? {
+    private fun getIsubSnapshotByDumpsys(context: Context): IsubSnapshot? {
         val now = System.currentTimeMillis()
         isubSnapshotCache?.let { cached ->
             if (now - cached.at < READ_CACHE_TTL_MS) {
@@ -476,7 +477,7 @@ object CarrierConfigManager {
             if (!ShizukuHelper.hasPermission()) {
                 null
             } else {
-                parseDumpsysIsub(runShellCommand("dumpsys isub"))
+                parseDumpsysIsub(context, runShellCommand("dumpsys isub"))
             }
         } catch (e: Exception) {
             null
@@ -485,7 +486,7 @@ object CarrierConfigManager {
         return fresh
     }
 
-    private fun parseDumpsysIsub(output: String): IsubSnapshot {
+    private fun parseDumpsysIsub(context: Context, output: String): IsubSnapshot {
         val slotToSubId = mutableMapOf<Int, Int>()
         LOGICAL_SLOT_PATTERN.findAll(output).forEach { match ->
             val slot = match.groupValues[1].toIntOrNull() ?: return@forEach
@@ -511,7 +512,7 @@ object CarrierConfigManager {
             val mnc = Regex("""\bmnc=(\d+)""").find(line)?.groupValues?.get(1)
             val name = displayName
                 ?: carrierName
-                ?: resolveCarrierNameByMccMnc(
+                ?: resolveCarrierNameByMccMnc(context,
                     if (mcc != null && mnc != null) mcc + mnc.padStart(2, '0') else null
                 )
             if (!name.isNullOrBlank()) {
@@ -673,7 +674,7 @@ object CarrierConfigManager {
         // 2. 真实 SIM 归属运营商：MCC/MNC 是 SIM 物理数据，覆盖还原后依然准确。
         //    还原后 SubInfo 显示名可能残留旧覆盖名，因此优先用 MCC/MNC 解析真实名称。
         //    ISub 经 Shizuku 反射读取（无需电话权限，SimStatusReader 同款已验证可读到真实值）
-        getRealMccMncViaISub(subId)?.let { resolveCarrierNameByMccMnc(it) }?.let { return it }
+        getRealMccMncViaISub(subId)?.let { resolveCarrierNameByMccMnc(context, it) }?.let { return it }
 
         val subscriptionManager =
             context.getSystemService(Context.TELEPHONY_SUBSCRIPTION_SERVICE) as? SubscriptionManager
@@ -683,6 +684,7 @@ object CarrierConfigManager {
         }
         if (subscriptionInfo != null) {
             resolveCarrierNameByMccMnc(
+                context,
                 String.format("%03d%02d", subscriptionInfo.mcc, subscriptionInfo.mnc)
             )?.let { return it }
         }
@@ -701,30 +703,37 @@ object CarrierConfigManager {
         return try {
             val subTelephony = telephonyManager.createForSubscriptionId(subId)
             subTelephony.simOperatorName.takeIf { it.isNotBlank() }
-                ?: resolveCarrierNameByMccMnc(subTelephony.simOperator)
+                ?: resolveCarrierNameByMccMnc(context, subTelephony.simOperator)
                 ?: ""
         } catch (e: Exception) {
             ""
         }
     }
 
-    private fun resolveCarrierNameByMccMnc(operatorNumeric: String?): String? {
+    private fun resolveCarrierNameByMccMnc(context: Context, operatorNumeric: String?): String? {
         if (operatorNumeric.isNullOrBlank()) {
             return null
         }
 
+        val lang = LanguageManager.currentLang(context)
+        fun localized(zh: String, en: String, tw: String): String = when (lang) {
+            "zh-CN" -> zh
+            "zh-TW" -> tw
+            else -> en
+        }
+
         return when {
-            operatorNumeric.startsWith("46015") -> "中国广电"
+            operatorNumeric.startsWith("46015") -> localized("中国广电", "China Broadnet", "中國廣電")
             operatorNumeric.startsWith("46003") ||
                 operatorNumeric.startsWith("46005") ||
-                operatorNumeric.startsWith("46011") -> "中国电信"
+                operatorNumeric.startsWith("46011") -> localized("中国电信", "China Telecom", "中國電信")
             operatorNumeric.startsWith("46001") ||
                 operatorNumeric.startsWith("46006") ||
-                operatorNumeric.startsWith("46009") -> "中国联通"
+                operatorNumeric.startsWith("46009") -> localized("中国联通", "China Unicom", "中國聯通")
             operatorNumeric.startsWith("46000") ||
                 operatorNumeric.startsWith("46002") ||
                 operatorNumeric.startsWith("46007") ||
-                operatorNumeric.startsWith("46008") -> "中国移动"
+                operatorNumeric.startsWith("46008") -> localized("中国移动", "China Mobile", "中國移動")
             else -> null
         }
     }

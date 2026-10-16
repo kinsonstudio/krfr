@@ -103,6 +103,7 @@ class MainActivity : ComponentActivity() {
                     )
                 } else if (appLang == null) {
                     LanguageSetupScreen(
+                        initialLang = LanguageManager.systemDefaultLang(this),
                         onSelected = { lang ->
                             appLang = lang
                             LanguageManager.writeLanguage(this, lang)
