@@ -31,26 +31,48 @@ internal object SubscriptionHiddenApi {
     /**
      * 设置 SIM 卡显示名（系统「SIM 卡信息」里可编辑的卡名，状态栏显示）。
      * 经 Shizuku shell 身份调用 ISub.setDisplayName；name 传空串表示清除回默认。
+     * 调用失败抛异常（不再静默吞掉）；写后回读验证，未生效也会抛异常，避免“假成功”。
      */
     fun setSimDisplayName(subId: Int, name: String?): Boolean {
         val display = name ?: ""
-        return runCatching {
-            val binder = Class.forName("android.os.ServiceManager")
-                .getMethod("getService", String::class.java)
-                .invoke(null, "isub") as IBinder
-            val stubClass = Class.forName(ISUB_STUB)
-            val iSub = stubClass.getMethod("asInterface", IBinder::class.java)
-                .invoke(null, ShizukuBinderWrapper(binder))
-            val method = iSub.javaClass.methods.firstOrNull {
-                it.name == "setDisplayName" && it.parameterTypes.size in 3..4
-            } ?: throw IllegalStateException("ISub.setDisplayName not found")
-            // ISub.setDisplayName 真实签名：setDisplayName(String displayName, int subId, String callingPackage[, String callingFeatureId])
-            when (method.parameterTypes.size) {
-                4 -> method.invoke(iSub, display, subId, "com.android.shell", null)
-                else -> method.invoke(iSub, display, subId, "com.android.shell")
+        val binder = Class.forName("android.os.ServiceManager")
+            .getMethod("getService", String::class.java)
+            .invoke(null, "isub") as IBinder
+        val stubClass = Class.forName(ISUB_STUB)
+        val iSub = stubClass.getMethod("asInterface", IBinder::class.java)
+            .invoke(null, ShizukuBinderWrapper(binder))
+        val method = iSub.javaClass.methods.firstOrNull {
+            it.name == "setDisplayName" && it.parameterTypes.size in 3..4
+        } ?: throw IllegalStateException("ISub.setDisplayName not found")
+        // ISub.setDisplayName 真实签名：setDisplayName(String displayName, int subId, String callingPackage[, String callingFeatureId])
+        when (method.parameterTypes.size) {
+            4 -> method.invoke(iSub, display, subId, "com.android.shell", null)
+            else -> method.invoke(iSub, display, subId, "com.android.shell")
+        }
+        // 写后回读验证：系统可能异步生效，最多等待 ~1.2s
+        Thread.sleep(400)
+        val current = com.github.krfr.manager.CarrierConfigManager.getSimDisplayName(subId)?.trim()
+        if (display.isBlank()) {
+            // 清除场景：回读应为空/默认
+            if (!current.isNullOrEmpty()) {
+                Thread.sleep(800)
+                val again = com.github.krfr.manager.CarrierConfigManager.getSimDisplayName(subId)?.trim()
+                if (!again.isNullOrEmpty()) {
+                    throw IllegalStateException(
+                        "清除未生效：当前显示名仍为“${again}”"
+                    )
+                }
             }
-            true
-        }.getOrDefault(false)
+        } else if (current != display) {
+            Thread.sleep(800)
+            val again = com.github.krfr.manager.CarrierConfigManager.getSimDisplayName(subId)?.trim()
+            if (again != display) {
+                throw IllegalStateException(
+                    "修改未生效：当前显示名仍为“${again.orEmpty().ifBlank { "默认名称" }}”"
+                )
+            }
+        }
+        return true
     }
 
     fun syncAfterOverride(context: Context, subId: Int, bundle: PersistableBundle?) {

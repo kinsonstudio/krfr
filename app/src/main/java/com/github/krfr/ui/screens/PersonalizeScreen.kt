@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import com.github.krfr.R
 import com.github.krfr.data.SettingsStore
 import com.github.krfr.manager.CarrierConfigManager
+import com.github.krfr.manager.LogStore
 import com.github.krfr.manager.SubscriptionHiddenApi
 import com.github.krfr.model.SimCardInfo
 import com.github.krfr.ui.components.PageHeader
@@ -407,6 +408,11 @@ fun PersonalizeScreen(
                                         )
                                     }
                                 }.onSuccess {
+                                    // 回读实际生效的名称并刷新草稿
+                                    val current = withContext(Dispatchers.IO) {
+                                        CarrierConfigManager.getSimDisplayName(card.subId) ?: card.carrierName
+                                    }
+                                    displayNameDrafts[card.subId] = current
                                     statusIsError = false
                                     statusMessage = context.getString(R.string.name_saved)
                                 }.onFailure {
@@ -415,6 +421,7 @@ fun PersonalizeScreen(
                                         R.string.name_save_failed,
                                         it.message ?: context.getString(R.string.unknown_error)
                                     )
+                                    LogStore.e("SIM 显示名保存失败 subId=${card.subId}: ${it.message.orEmpty()}")
                                 }
                             }
                         },
@@ -437,6 +444,7 @@ fun PersonalizeScreen(
                                         R.string.name_reset_failed,
                                         it.message ?: context.getString(R.string.unknown_error)
                                     )
+                                    LogStore.e("SIM 显示名重置失败 subId=${card.subId}: ${it.message.orEmpty()}")
                                 }
                             }
                         }
