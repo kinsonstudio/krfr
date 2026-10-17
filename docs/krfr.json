@@ -1,8 +1,8 @@
 {
   "app": "krfr",
-  "latest_version": "1.0.8",
-  "version_code": 9,
+  "latest_version": "1.0.9",
+  "version_code": 10,
   "update_url": "https://taiai.asia/krfr.apk",
-  "release_date": "2026-10-16",
-  "changelog": "v1.0.8：新增个性化页面（多配色主题·自定义背景图·SIM 卡显示名设置）；支持英文/简体/繁体三语，快捷方案、国家码、运营商名称等数据全部跟随语言切换；首次进入自动匹配手机系统语言"
+  "release_date": "2026-10-17",
+  "changelog": "v1.0.9：修复修改运营商名称（SIM 显示名）不生效——保存失败不再误报成功，写后回读验证并刷新实际名称"
 }
