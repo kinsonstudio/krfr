@@ -4,5 +4,5 @@
   "version_code": 10,
   "update_url": "https://taiai.asia/krfr.apk",
   "release_date": "2026-10-17",
-  "changelog": "v1.0.9：修复修改运营商名称（SIM 显示名）不生效——保存失败不再误报成功，写后回读验证并刷新实际名称"
+  "changelog": "v1.0.9：修复修改运营商名称（SIM 显示名）不生效——多通道反射兜底（ISub / HiddenApiBypass / OPPO ISubExt），保存失败不再误报成功，写后回读验证并刷新实际名称"
 }

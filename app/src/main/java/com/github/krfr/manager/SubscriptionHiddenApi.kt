@@ -6,6 +6,7 @@ import android.os.PersistableBundle
 import android.telephony.CarrierConfigManager
 import android.telephony.TelephonyManager
 import android.util.Log
+import org.lsposed.hiddenapibypass.HiddenApiBypass
 import rikka.shizuku.ShizukuBinderWrapper
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
@@ -30,26 +31,133 @@ internal object SubscriptionHiddenApi {
 
     /**
      * 设置 SIM 卡显示名（系统「SIM 卡信息」里可编辑的卡名，状态栏显示）。
-     * 经 Shizuku shell 身份调用 ISub.setDisplayName；name 传空串表示清除回默认。
-     * 调用失败抛异常（不再静默吞掉）；写后回读验证，未生效也会抛异常，避免“假成功”。
+     * 经 Shizuku shell 身份调用；多通道兜底（ISub 普通反射 / HiddenApiBypass 直取 / OPPO ISubExt）。
+     * name 传空串表示清除回默认。调用失败抛异常（不再静默吞掉）；写后回读验证。
      */
     fun setSimDisplayName(subId: Int, name: String?): Boolean {
         val display = name ?: ""
-        val binder = Class.forName("android.os.ServiceManager")
-            .getMethod("getService", String::class.java)
-            .invoke(null, "isub") as IBinder
-        val stubClass = Class.forName(ISUB_STUB)
-        val iSub = stubClass.getMethod("asInterface", IBinder::class.java)
-            .invoke(null, ShizukuBinderWrapper(binder))
-        val method = iSub.javaClass.methods.firstOrNull {
-            it.name == "setDisplayName" && it.parameterTypes.size in 3..4
-        } ?: throw IllegalStateException("ISub.setDisplayName not found")
-        // ISub.setDisplayName 真实签名：setDisplayName(String displayName, int subId, String callingPackage[, String callingFeatureId])
-        when (method.parameterTypes.size) {
-            4 -> method.invoke(iSub, display, subId, "com.android.shell", null)
-            else -> method.invoke(iSub, display, subId, "com.android.shell")
+        val errors = mutableListOf<String>()
+
+        runCatching { invokeISubSetDisplayName(subId, display) }
+            .onSuccess { verifySimDisplayName(subId, display); return true }
+            .onFailure { errors.add("ISub:${it.message}") }
+
+        runCatching { invokeISubSetDisplayNameBypass(subId, display) }
+            .onSuccess { verifySimDisplayName(subId, display); return true }
+            .onFailure { errors.add("ISubBypass:${it.message}") }
+
+        runCatching { invokeOplusSetDisplayName(subId, display) }
+            .onSuccess { verifySimDisplayName(subId, display); return true }
+            .onFailure { errors.add("ISubExt:${it.message}") }
+
+        val available = runCatching {
+            val iSub = getISub()
+            iSub?.javaClass?.methods?.map { it.name }?.distinct()?.sorted()?.joinToString(",")
+                ?: "ISub 不可用"
+        }.getOrDefault("?")
+        throw IllegalStateException(
+            "所有修改显示名通道均失败：${errors.joinToString(" | ")}；ISub 现有方法：$available"
+        )
+    }
+
+    /** 通道 A：普通反射遍历 ISub（代理类 + 接口类），方法名 setDisplayName / setDisplayNameUsingSrc，动态签名。 */
+    private fun invokeISubSetDisplayName(subId: Int, display: String) {
+        val iSub = getISub() ?: throw IllegalStateException("ISub 不可用")
+        val interfaceMethods = runCatching {
+            Class.forName("com.android.internal.telephony.ISub").methods
+        }.getOrDefault(emptyArray())
+        val candidates = (iSub.javaClass.methods + interfaceMethods)
+            .distinctBy { it.name + it.parameterTypes.joinToString(",") { c -> c.name } }
+            .filter { it.name == "setDisplayName" || it.name == "setDisplayNameUsingSrc" }
+        for (method in candidates) {
+            val args = buildDisplayNameArgs(method.parameterTypes, subId, display) ?: continue
+            try {
+                invoke(method, iSub, *args)
+                return
+            } catch (e: Throwable) {
+                // 继续尝试下一签名
+            }
         }
-        // 写后回读验证：系统可能异步生效，最多等待 ~1.2s
+        throw NoSuchMethodException("ISub 无可用 setDisplayName 签名")
+    }
+
+    /** 通道 B：HiddenApiBypass 直取接口声明方法（绕过 hidden API 过滤）+ invoke。 */
+    private fun invokeISubSetDisplayNameBypass(subId: Int, display: String) {
+        val iSub = getISub() ?: throw IllegalStateException("ISub 不可用")
+        val iface = Class.forName("com.android.internal.telephony.ISub")
+        val methods = HiddenApiBypass.getDeclaredMethods(iface)
+            .filterIsInstance<Method>()
+            .filter { it.name == "setDisplayName" || it.name == "setDisplayNameUsingSrc" }
+        for (method in methods) {
+            val args = buildDisplayNameArgs(method.parameterTypes, subId, display) ?: continue
+            try {
+                method.invoke(iSub, *args)
+                return
+            } catch (e: Throwable) {
+                // 继续尝试下一签名
+            }
+        }
+        throw NoSuchMethodException("ISub(HiddenApiBypass) 无可用 setDisplayName 签名")
+    }
+
+    /** 通道 C：OPPO ISubExt 的显示名方法（setDisplayName / setDisplayNameUsingSrc / *DisplayName*）。 */
+    private fun invokeOplusSetDisplayName(subId: Int, display: String) {
+        val iSubExt = getISubExt() ?: throw IllegalStateException("ISubExt 不可用")
+        val interfaceMethods = runCatching {
+            HiddenApiBypass.getDeclaredMethods(Class.forName(ISUB_EXT))
+                .filterIsInstance<Method>()
+        }.getOrDefault(emptyList())
+        val candidates = (iSubExt.javaClass.methods.toList() + interfaceMethods)
+            .distinctBy { it.name + it.parameterTypes.joinToString(",") { c -> c.name } }
+            .filter { it.name.contains("isplay", ignoreCase = true) }
+        for (method in candidates) {
+            val args = buildDisplayNameArgs(method.parameterTypes, subId, display) ?: continue
+            try {
+                invoke(method, iSubExt, *args)
+                return
+            } catch (e: Throwable) {
+                // 继续尝试下一签名
+            }
+        }
+        throw NoSuchMethodException("ISubExt 无显示名方法")
+    }
+
+    /** 按真实参数类型动态构造 ISub.setDisplayName 参数（int,String 或 String,int 开头，其余按类型填）。 */
+    private fun buildDisplayNameArgs(
+        types: Array<Class<*>>,
+        subId: Int,
+        display: String
+    ): Array<Any?>? {
+        if (types.size < 2) return null
+        val first = types[0]
+        val second = types[1]
+        val result = ArrayList<Any?>(types.size)
+        for (i in 2 until types.size) {
+            when (types[i]) {
+                Long::class.javaPrimitiveType, java.lang.Long::class.java ->
+                    result.add(2L) // NAME_SOURCE_USER_INPUT
+                Int::class.javaPrimitiveType, Integer::class.java -> result.add(1)
+                String::class.java -> result.add("com.android.shell")
+                else -> return null
+            }
+        }
+        return when {
+            first == Int::class.javaPrimitiveType && second == String::class.java -> {
+                val all = ArrayList<Any?>(types.size)
+                all.add(subId); all.add(display); all.addAll(result)
+                all.toTypedArray()
+            }
+            first == String::class.java && second == Int::class.javaPrimitiveType -> {
+                val all = ArrayList<Any?>(types.size)
+                all.add(display); all.add(subId); all.addAll(result)
+                all.toTypedArray()
+            }
+            else -> null
+        }
+    }
+
+    /** 写后回读验证：系统可能异步生效，最多等待 ~1.2s；未生效抛异常，避免“假成功”。 */
+    private fun verifySimDisplayName(subId: Int, display: String) {
         Thread.sleep(400)
         val current = com.github.krfr.manager.CarrierConfigManager.getSimDisplayName(subId)?.trim()
         if (display.isBlank()) {
@@ -72,7 +180,6 @@ internal object SubscriptionHiddenApi {
                 )
             }
         }
-        return true
     }
 
     fun syncAfterOverride(context: Context, subId: Int, bundle: PersistableBundle?) {

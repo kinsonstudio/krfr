@@ -281,6 +281,14 @@
       <li>
         <div class="ver">v1.0.9<em>2026-10-17</em><span class="new-badge">最新</span></div>
         <ul>
+          <li>修复：修改运营商名称（SIM 显示名）不生效——保存失败不再误报「已保存」，写后回读验证，未生效会明确提示并记录运行日志</li>
+          <li>优化：保存 / 还原显示名后自动刷新为系统当前实际名称</li>
+          <li>修复：适配部分系统（Android 16 / OPPO 等）ISub 无 setDisplayName 的情况——多通道反射（HiddenApiBypass / ISubExt）自动兜底</li>
+        </ul>
+      </li>
+      <li>
+        <div class="ver">v1.0.8<em>2026-10-16</em></div>
+        <ul>
           <li>新增「个性化」页面：4 套配色主题（墨绿 / 海蓝 / 暖橙 / 玫红）、明暗模式、上传图片作为应用背景</li>
           <li>SIM 卡个性化：可修改每张 SIM 卡的显示名（状态栏卡名），支持一键还原默认</li>
           <li>三语支持：英文 / 简体中文 / 繁體中文，全部界面文字本地化</li>
