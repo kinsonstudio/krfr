@@ -51,9 +51,10 @@ object LanguageManager {
         return readLanguage(context) ?: systemDefaultLang(context)
     }
 
-    /** 把 context 的资源语言切到当前设置（attachBaseContext 用） */
+    /** 把 context 的资源语言切到当前生效语言（attachBaseContext 用）：
+     *  已设置用设置值，未设置自动匹配系统语言 */
     fun applyLocale(base: Context): Context {
-        val lang = readLanguage(base)
+        val lang = currentLang(base)
         val locale = resolveLocale(lang)
         val config = android.content.res.Configuration(base.resources.configuration)
         config.setLocale(locale)
