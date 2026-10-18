@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>krfr · SIM Card MCC/MNC &amp; Carrier Config Tool</title>
+<style>
+  :root {
+    --bg: #f5f7f6; --card: #ffffff; --ink: #1f2925; --muted: #5f6f68;
+    --brand: #2F6B5E; --brand2: #8A7A3C; --line: #e3e9e6; --chip: #eef4f1;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif; background: var(--bg); color: var(--ink); line-height: 1.7; }
+  .wrap { max-width: 860px; margin: 0 auto; padding: 28px 20px 60px; }
+  header { text-align: center; padding: 30px 0 8px; }
+  header img { width: 88px; border-radius: 18px; box-shadow: 0 8px 24px rgba(20, 32, 28, .18); }
+  h1 { font-size: 40px; margin-top: 14px; letter-spacing: -1px; }
+  .tagline { color: var(--muted); font-size: 15px; margin-top: 6px; }
+  .badges { margin-top: 14px; display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+  .badges img { box-shadow: none; border-radius: 6px; }
+  .lang-bar { display: flex; gap: 10px; justify-content: center; align-items: center; margin: 26px 0 6px; flex-wrap: wrap; }
+  .lang-bar .lbl { color: var(--muted); font-size: 14px; }
+  .lang-btn { border: 1.5px solid var(--line); background: var(--card); color: var(--brand); padding: 7px 18px; border-radius: 999px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all .18s; }
+  .lang-btn:hover { border-color: var(--brand); }
+  .lang-btn.active { background: var(--brand); color: #fff; border-color: var(--brand); }
+  section { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 26px 28px; margin-top: 18px; }
+  h2 { font-size: 20px; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+  h2::before { content: ""; width: 5px; height: 20px; background: var(--brand); border-radius: 3px; display: inline-block; }
+  .dl-btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 6px; }
+  .dl-btn { display: inline-block; padding: 13px 28px; border-radius: 12px; font-weight: 700; font-size: 15px; text-decoration: none; transition: all .18s; }
+  .dl-btn.primary { background: var(--brand); color: #fff; box-shadow: 0 6px 18px rgba(47, 107, 94, .28); }
+  .dl-btn.ghost { background: var(--card); color: var(--brand); border: 1.5px solid var(--brand); }
+  .dl-btn:hover { transform: translateY(-2px); }
+  .dl-note { text-align: center; color: var(--muted); font-size: 13px; margin-top: 10px; }
+  table { width: 100%; border-collapse: collapse; margin-top: 6px; }
+  th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); font-size: 14px; vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; width: 90px; white-space: nowrap; }
+  tr:last-child td { border-bottom: none; }
+  .phone-shot { display: flex; flex-direction: column; align-items: center; margin: 20px 0 6px; }
+  .phone { width: 260px; border: 9px solid #23262a; border-radius: 40px; padding: 0; position: relative; overflow: hidden; box-shadow: 0 18px 40px rgba(20, 32, 28, .28); background: #000; }
+  .phone-notch { position: absolute; top: 8px; left: 50%; transform: translateX(-50%); width: 90px; height: 20px; background: #23262a; border-radius: 0 0 14px 14px; z-index: 2; }
+  .phone img { width: 100%; display: block; border-radius: 31px; }
+  .shot-caption { text-align: center; color: var(--muted); font-size: 13px; margin-top: 10px; }
+  ol, ul { padding-left: 22px; font-size: 14.5px; }
+  li { margin: 5px 0; }
+  pre { background: #101614; color: #d7e5de; padding: 16px 18px; border-radius: 12px; overflow-x: auto; font-size: 13px; line-height: 1.6; margin: 10px 0; }
+  code { font-family: "SF Mono", Menlo, Consolas, monospace; }
+  p code, li code { background: var(--chip); color: var(--brand); padding: 1px 6px; border-radius: 5px; font-size: 13px; }
+  .note { background: var(--chip); border-left: 3px solid var(--brand2); border-radius: 0 10px 10px 0; padding: 12px 16px; font-size: 13.5px; color: var(--muted); margin: 12px 0; }
+  footer { text-align: center; color: var(--muted); font-size: 13px; margin-top: 34px; }
+  .mono { font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 12.5px; line-height: 1.55; white-space: pre; overflow-x: auto; background: #f0f4f2; border-radius: 10px; padding: 14px 16px; }
+  @media (max-width: 600px) { h1 { font-size: 30px; } section { padding: 20px 16px; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <img src="krfr-icon-preview.png" alt="krfr logo">
+    <h1>📶 krfr</h1>
+    <p class="tagline" data-i18n="tagline">SIM Card MCC/MNC &amp; Carrier Configuration Tool · No Root · Powered by Shizuku</p>
+    <div class="badges">
+      <img src="https://img.shields.io/github/v/release/kinsonstudio/krfr?label=Latest&color=2F6B5E" alt="release">
+      <img src="https://img.shields.io/github/downloads/kinsonstudio/krfr/total?label=Downloads&color=8A7A3C" alt="downloads">
+      <img src="https://img.shields.io/badge/License-Apache--2.0-2F6B5E" alt="license">
+      <img src="https://img.shields.io/badge/Platform-Android%208%2B-2F6B5E" alt="platform">
+    </div>
+  </header>
+
+  <div class="lang-bar">
+    <span class="lbl" data-i18n="lang_lbl">🌐 Language / 语言</span>
+    <button class="lang-btn" data-lang="en" onclick="setLang('en')">English</button>
+    <button class="lang-btn" data-lang="zh-CN" onclick="setLang('zh-CN')">简体中文</button>
+    <button class="lang-btn" data-lang="zh-TW" onclick="setLang('zh-TW')">繁體中文</button>
+  </div>
+
+  <section>
+    <h2 data-i18n="sec_download">📥 Download</h2>
+    <div class="dl-btns">
+      <a class="dl-btn primary" data-i18n="dl_btn_site" href="https://taiai.asia/krfr.html">🌐 Go to Official Download Page</a>
+      <a class="dl-btn ghost" data-i18n="dl_btn_gh" href="https://github.com/kinsonstudio/krfr/releases/latest">🚀 Go to GitHub Releases</a>
+    </div>
+    <p class="dl-note" data-i18n="dl_note">Latest version v1.0.9 · Android 8+ · No Root</p>
+  </section>
+
+  <section>
+    <h2 data-i18n="sec_features">✨ Features</h2>
+    <table>
+      <tr><th>🌍</th><td><b data-i18n="f1_t">MCC/MNC Override</b> — <span data-i18n="f1_d">Change SIM card country code (MCC/MNC) and carrier name via Shizuku, per-SIM independent override with custom values.</span></td></tr>
+      <tr><th>📡</th><td><b data-i18n="f2_t">Live SIM Status</b> — <span data-i18n="f2_d">Network type, signal strength, MCC/MNC, country/region, roaming state, masked ICCID for every SIM in real time.</span></td></tr>
+      <tr><th>⚡</th><td><b data-i18n="f3_t">Quick Presets</b> — <span data-i18n="f3_d">18 common "country code + carrier" combos, apply to any SIM with one tap.</span></td></tr>
+      <tr><th>💾</th><td><b data-i18n="f4_t">Backup &amp; Restore</b> — <span data-i18n="f4_d">Export all override configs as JSON; restore after switching devices or reinstalling.</span></td></tr>
+      <tr><th>🎨</th><td><b data-i18n="f5_t">Personalize</b> — <span data-i18n="f5_d">4 color themes (dark green / ocean blue / warm orange / rose), light &amp; dark modes, upload your own background image.</span></td></tr>
+      <tr><th>🪪</th><td><b data-i18n="f6_t">SIM Display Name</b> — <span data-i18n="f6_d">Edit each SIM's display name (status bar card name) with one-tap restore to default.</span></td></tr>
+      <tr><th>🌐</th><td><b data-i18n="f7_t">Trilingual UI</b> — <span data-i18n="f7_d">English / 简体中文 / 繁體中文 — all interface texts localized; auto-matches system language on first launch.</span></td></tr>
+      <tr><th>🔄</th><td><b data-i18n="f8_t">Update Check</b> — <span data-i18n="f8_d">Built-in update checker backed by a fast domestic server (GitHub API as fallback).</span></td></tr>
+    </table>
+  </section>
+
+  <section>
+    <h2 data-i18n="sec_shot">📱 Screenshots</h2>
+    <div class="phone-shot">
+      <div class="phone">
+        <div class="phone-notch"></div>
+        <img src="krfr-screen-en.jpg" alt="krfr config screen" data-i18n-img="shot_img">
+      </div>
+      <p class="shot-caption" data-i18n="shot_caption">Config screen · per-SIM independent country code &amp; carrier override (SIM1 China Broadnet / SIM2 China Mobile)</p>
+    </div>
+  </section>
+
+  <section>
+    <h2 data-i18n="sec_start">🚀 Quick Start</h2>
+    <ol>
+      <li data-i18n="s1">Install and activate <b>Shizuku</b> (via wireless debugging or ADB).</li>
+      <li data-i18n="s2">Download and install the krfr APK (allow "install unknown apps").</li>
+      <li data-i18n="s3">Open krfr, pick your language (auto-matched to system, English default), then follow the wizard to grant Shizuku permission.</li>
+      <li data-i18n="s4">Select a SIM → change MCC/MNC or carrier name → save.</li>
+      <li data-i18n="s5">Reboot the device or wait for the config to take effect.</li>
+    </ol>
+  </section>
+
+  <section>
+    <h2 data-i18n="sec_build">🛠 Build from Source</h2>
+    <p data-i18n="build_req"><b>Requirements:</b> Android Studio (Koala or newer) · <b>JDK 17</b> (Gradle 8.9 does not support JDK 25) · Android SDK</p>
+    <pre>cd krfr
+export JAVA_HOME=$HOME/jdk17/Contents/Home
+./gradlew :app:assembleRelease</pre>
+    <p data-i18n="build_out">APK output: <code>app/build/outputs/apk/release/app-release.apk</code></p>
+    <div class="note" data-i18n="build_note">If <code>ANDROID_SDK_ROOT</code> points to a wrong path, run <code>unset ANDROID_SDK_ROOT</code> first to avoid conflicts with <code>ANDROID_HOME</code>.</div>
+  </section>
+
+  <section>
+    <h2 data-i18n="sec_struct">📁 Project Structure</h2>
+    <div class="mono">app/src/main/java/com/github/krfr/
+├── data/          # Preset data: country codes, carriers, quick presets, settings persistence
+├── manager/       # Core logic: CarrierConfig override, SIM status, backup/restore, update check
+├── ui/
+│   ├── components/  # Shared components (gradient headers, status badges, result banners…)
+│   ├── screens/     # Config / SIM status / Quick presets / Settings / About / Personalize
+│   ├── theme/       # Theme palettes &amp; switching
+│   └── MainScaffold.kt  # Bottom navigation container
+└── MainActivity.kt</div>
+  </section>
+
+  <section>
+    <h2 data-i18n="sec_stack">🧩 Tech Stack</h2>
+    <ul>
+      <li data-i18n="t1">Kotlin + Jetpack Compose (Material 3)</li>
+      <li data-i18n="t2">Shizuku (rikka.shizuku:api:13.1.5) + HiddenApiBypass, fully rootless</li>
+      <li data-i18n="t3">Package <code>com.github.krfr</code> · Latest version v1.0.9</li>
+      <li data-i18n="t4">minSdk 26 / targetSdk 35 / compileSdk 36</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2 data-i18n="sec_license">📄 License</h2>
+    <p data-i18n="license_txt">This project is developed based on <b>Ackites/Nrfr</b> under the <b>Apache-2.0</b> license. Upstream license: <a href="https://github.com/Ackites/Nrfr/blob/master/LICENSE" target="_blank" rel="noopener">Ackites/Nrfr LICENSE</a></p>
+  </section>
+
+  <section>
+    <h2 data-i18n="sec_disclaimer">⚠️ Disclaimer</h2>
+    <p data-i18n="disclaimer_txt">This tool is for learning and research purposes only. Modifying carrier configuration may affect network, roaming and region detection. Use at your own risk.</p>
+  </section>
+
+  <footer data-i18n="footer">Made by <b>KinsonStudio</b> · Based on Nrfr (Apache-2.0)</footer>
+</div>
+
+<script>
+var LANG_KEY = "krfr_lang";
+var I18N = {
+  "en": {
+    "tagline": "SIM Card MCC/MNC & Carrier Configuration Tool · No Root · Powered by Shizuku",
+    "lang_lbl": "🌐 Language",
+    "sec_download": "📥 Download",
+    "dl_btn_site": "🌐 Go to Official Download Page",
+    "dl_btn_gh": "🚀 Go to GitHub Releases",
+    "dl_note": "Latest version v1.0.9 · Android 8+ · No Root",
+    "sec_features": "✨ Features",
+    "f1_t": "MCC/MNC Override", "f1_d": "Change SIM card country code (MCC/MNC) and carrier name via Shizuku, per-SIM independent override with custom values.",
+    "f2_t": "Live SIM Status", "f2_d": "Network type, signal strength, MCC/MNC, country/region, roaming state, masked ICCID for every SIM in real time.",
+    "f3_t": "Quick Presets", "f3_d": "18 common \"country code + carrier\" combos, apply to any SIM with one tap.",
+    "f4_t": "Backup & Restore", "f4_d": "Export all override configs as JSON; restore after switching devices or reinstalling.",
+    "f5_t": "Personalize", "f5_d": "4 color themes (dark green / ocean blue / warm orange / rose), light & dark modes, upload your own background image.",
+    "f6_t": "SIM Display Name", "f6_d": "Edit each SIM's display name (status bar card name) with one-tap restore to default.",
+    "f7_t": "Trilingual UI", "f7_d": "English / 简体中文 / 繁體中文 — all interface texts localized; auto-matches system language on first launch.",
+    "f8_t": "Update Check", "f8_d": "Built-in update checker backed by a fast domestic server (GitHub API as fallback).",
+    "sec_shot": "📱 Screenshots",
+    "shot_img": "krfr-screen-en.jpg",
+    "shot_caption": "Config screen · per-SIM independent country code & carrier override (SIM1 China Broadnet / SIM2 China Mobile)",
+    "sec_start": "🚀 Quick Start",
+    "s1": "Install and activate Shizuku (via wireless debugging or ADB).",
+    "s2": "Download and install the krfr APK (allow \"install unknown apps\").",
+    "s3": "Open krfr, pick your language (auto-matched to system, English default), then follow the wizard to grant Shizuku permission.",
+    "s4": "Select a SIM → change MCC/MNC or carrier name → save.",
+    "s5": "Reboot the device or wait for the config to take effect.",
+    "sec_build": "🛠 Build from Source",
+    "build_req": "Requirements: Android Studio (Koala or newer) · JDK 17 (Gradle 8.9 does not support JDK 25) · Android SDK",
+    "build_out": "APK output: app/build/outputs/apk/release/app-release.apk",
+    "build_note": "If ANDROID_SDK_ROOT points to a wrong path, run unset ANDROID_SDK_ROOT first to avoid conflicts with ANDROID_HOME.",
+    "sec_struct": "📁 Project Structure",
+    "sec_stack": "🧩 Tech Stack",
+    "t1": "Kotlin + Jetpack Compose (Material 3)",
+    "t2": "Shizuku (rikka.shizuku:api:13.1.5) + HiddenApiBypass, fully rootless",
+    "t3": "Package com.github.krfr · Latest version v1.0.9",
+    "t4": "minSdk 26 / targetSdk 35 / compileSdk 36",
+    "sec_license": "📄 License",
+    "license_txt": "This project is developed based on Ackites/Nrfr under the Apache-2.0 license. Upstream license: Ackites/Nrfr LICENSE",
+    "sec_disclaimer": "⚠️ Disclaimer",
+    "disclaimer_txt": "This tool is for learning and research purposes only. Modifying carrier configuration may affect network, roaming and region detection. Use at your own risk.",
+    "footer": "Made by KinsonStudio · Based on Nrfr (Apache-2.0)"
+  },
+  "zh-CN": {
+    "tagline": "SIM 卡国家码与运营商配置工具 · 免 Root · 由 Shizuku 驱动",
+    "lang_lbl": "🌐 语言",
+    "sec_download": "📥 下载",
+    "dl_btn_site": "🌐 前往官网下载页下载",
+    "dl_btn_gh": "🚀 前往 GitHub Releases 下载",
+    "dl_note": "最新版本 v1.0.9 · Android 8+ · 免 Root",
+    "sec_features": "✨ 功能亮点",
+    "f1_t": "国家码修改", "f1_d": "经 Shizuku 修改 SIM 卡国家码（MCC/MNC）与运营商名称，双卡独立覆盖，支持自定义值。",
+    "f2_t": "SIM 实时状态", "f2_d": "每张卡的网络类型、信号强度、MCC/MNC、国家/地区、漫游状态、ICCID（脱敏）实时可查。",
+    "f3_t": "快捷方案", "f3_d": "18 个常用「国家码 + 运营商」组合，选定 SIM 一键应用。",
+    "f4_t": "备份与恢复", "f4_d": "当前所有卡槽的覆盖配置导出为 JSON，换机 / 重装后一键恢复。",
+    "f5_t": "个性化", "f5_d": "4 套配色主题（墨绿 / 海蓝 / 暖橙 / 玫红）、明暗模式、上传图片作为应用背景。",
+    "f6_t": "SIM 显示名", "f6_d": "可修改每张 SIM 卡的显示名（状态栏卡名），支持一键还原默认。",
+    "f7_t": "三语界面", "f7_d": "英文 / 简体中文 / 繁體中文，全部界面文字本地化，首次进入自动匹配系统语言。",
+    "f8_t": "检查更新", "f8_d": "内置更新检测，优先走国内服务器（GitHub API 自动兜底）。",
+    "sec_shot": "📱 应用截图",
+    "shot_img": "krfr-screen-1.jpg",
+    "shot_caption": "配置页 · 双卡独立配置国家码与运营商（SIM1 中国广电 / SIM2 中国移动）",
+    "sec_start": "🚀 快速开始",
+    "s1": "安装并启动 Shizuku（无线调试或 ADB 方式激活）。",
+    "s2": "下载安装 krfr APK（需允许「安装未知来源应用」）。",
+    "s3": "打开 krfr，选择语言（自动匹配系统语言，默认英文），按引导完成 Shizuku 授权。",
+    "s4": "选择 SIM 卡 → 修改国家码 / 运营商 → 保存。",
+    "s5": "重启手机或等待配置生效。",
+    "sec_build": "🛠 从源码构建",
+    "build_req": "环境要求：Android Studio（Koala 或更新）· JDK 17（Gradle 8.9 不支持 JDK 25）· Android SDK",
+    "build_out": "APK 输出：app/build/outputs/apk/release/app-release.apk",
+    "build_note": "若环境存在 ANDROID_SDK_ROOT 且指向错误路径，先 unset ANDROID_SDK_ROOT，避免与 ANDROID_HOME 冲突。",
+    "sec_struct": "📁 项目结构",
+    "sec_stack": "🧩 技术栈",
+    "t1": "Kotlin + Jetpack Compose（Material 3）",
+    "t2": "Shizuku（rikka.shizuku:api:13.1.5）+ HiddenApiBypass，全程免 Root",
+    "t3": "包名 com.github.krfr · 最新版本 v1.0.9",
+    "t4": "minSdk 26 / targetSdk 35 / compileSdk 36",
+    "sec_license": "📄 许可证",
+    "license_txt": "本项目基于 Ackites/Nrfr 开发，遵循 Apache-2.0 许可证。上游许可证：Ackites/Nrfr LICENSE",
+    "sec_disclaimer": "⚠️ 免责声明",
+    "disclaimer_txt": "本工具仅供学习研究。修改运营商配置可能影响网络、漫游与区域识别，请自行承担使用风险。",
+    "footer": "Made by KinsonStudio · 基于 Nrfr 开源（Apache-2.0）"
+  },
+  "zh-TW": {
+    "tagline": "SIM 卡國家碼與電訊商配置工具 · 免 Root · 由 Shizuku 驅動",
+    "lang_lbl": "🌐 語言",
+    "sec_download": "📥 下載",
+    "dl_btn_site": "🌐 前往官網下載頁下載",
+    "dl_btn_gh": "🚀 前往 GitHub Releases 下載",
+    "dl_note": "最新版本 v1.0.9 · Android 8+ · 免 Root",
+    "sec_features": "✨ 功能亮點",
+    "f1_t": "國家碼修改", "f1_d": "經 Shizuku 修改 SIM 卡國家碼（MCC/MNC）與電訊商名稱，雙卡獨立覆蓋，支援自訂值。",
+    "f2_t": "SIM 實時狀態", "f2_d": "每張卡的網絡類型、訊號強度、MCC/MNC、國家/地區、漫遊狀態、ICCID（脫敏）實時可查。",
+    "f3_t": "快捷方案", "f3_d": "18 個常用「國家碼 + 電訊商」組合，選定 SIM 一鍵套用。",
+    "f4_t": "備份與還原", "f4_d": "當前所有卡槽的覆蓋配置匯出為 JSON，換機 / 重裝後一鍵還原。",
+    "f5_t": "個人化", "f5_d": "4 套配色主題（墨綠 / 海藍 / 暖橙 / 玫紅）、明暗模式、上傳圖片作為應用程式背景。",
+    "f6_t": "SIM 顯示名稱", "f6_d": "可修改每張 SIM 卡的顯示名稱（狀態欄卡名），支援一鍵還原預設。",
+    "f7_t": "三語介面", "f7_d": "英文 / 简体中文 / 繁體中文，全部介面文字本地化，首次進入自動匹配系統語言。",
+    "f8_t": "檢查更新", "f8_d": "內建更新檢測，優先走國內伺服器（GitHub API 自動兜底）。",
+    "sec_shot": "📱 應用截圖",
+    "shot_img": "krfr-screen-zhTW.jpg",
+    "shot_caption": "配置頁 · 雙卡獨立配置國家碼與電訊商（SIM1 中國廣電 / SIM2 中國移動）",
+    "sec_start": "🚀 快速開始",
+    "s1": "安裝並啟動 Shizuku（無線調試或 ADB 方式啟用）。",
+    "s2": "下載安裝 krfr APK（需允許「安裝未知來源應用」）。",
+    "s3": "開啟 krfr，選擇語言（自動匹配系統語言，預設英文），按引導完成 Shizuku 授權。",
+    "s4": "選擇 SIM 卡 → 修改國家碼 / 電訊商 → 儲存。",
+    "s5": "重新啟動手機或等待配置生效。",
+    "sec_build": "🛠 從原始碼建置",
+    "build_req": "環境要求：Android Studio（Koala 或更新）· JDK 17（Gradle 8.9 不支援 JDK 25）· Android SDK",
+    "build_out": "APK 輸出：app/build/outputs/apk/release/app-release.apk",
+    "build_note": "若環境存在 ANDROID_SDK_ROOT 且指向錯誤路徑，先 unset ANDROID_SDK_ROOT，避免與 ANDROID_HOME 衝突。",
+    "sec_struct": "📁 專案結構",
+    "sec_stack": "🧩 技術棧",
+    "t1": "Kotlin + Jetpack Compose（Material 3）",
+    "t2": "Shizuku（rikka.shizuku:api:13.1.5）+ HiddenApiBypass，全程免 Root",
+    "t3": "套件名稱 com.github.krfr · 最新版本 v1.0.9",
+    "t4": "minSdk 26 / targetSdk 35 / compileSdk 36",
+    "sec_license": "📄 授權條款",
+    "license_txt": "本專案基於 Ackites/Nrfr 開發，遵循 Apache-2.0 授權。上游授權：Ackites/Nrfr LICENSE",
+    "sec_disclaimer": "⚠️ 免責聲明",
+    "disclaimer_txt": "本工具僅供學習研究。修改電訊商配置可能影響網絡、漫遊與地區識別，請自行承擔使用風險。",
+    "footer": "Made by KinsonStudio · 基於 Nrfr 開源（Apache-2.0）"
+  }
+};
+
+function currentLang() {
+  var m = (location.search || "").match(/[?&]lang=([^&]+)/);
+  if (m && I18N[m[1]]) return m[1];
+  var saved = "en";
+  try { saved = localStorage.getItem(LANG_KEY) || "en"; } catch (e) {}
+  return (I18N[saved] ? saved : "en");
+}
+function applyLang(lang) {
+  var dict = I18N[lang] || I18N.en;
+  var els = document.querySelectorAll("[data-i18n]");
+  for (var i = 0; i < els.length; i++) {
+    var key = els[i].getAttribute("data-i18n");
+    if (dict[key] !== undefined) els[i].innerHTML = dict[key];
+  }
+  var imgs = document.querySelectorAll("[data-i18n-img]");
+  for (var k = 0; k < imgs.length; k++) {
+    var ikey = imgs[k].getAttribute("data-i18n-img");
+    if (dict[ikey] !== undefined) imgs[k].src = dict[ikey];
+  }
+  document.documentElement.lang = lang;
+  document.title = lang === "en" ? "krfr · SIM Card MCC/MNC & Carrier Config Tool"
+    : (lang === "zh-CN" ? "krfr · SIM 卡国家码与运营商配置工具" : "krfr · SIM 卡國家碼與電訊商配置工具");
+  var btns = document.querySelectorAll(".lang-btn");
+  for (var j = 0; j < btns.length; j++) {
+    btns[j].className = "lang-btn" + (btns[j].getAttribute("data-lang") === lang ? " active" : "");
+  }
+}
+function setLang(lang) {
+  try { localStorage.setItem(LANG_KEY, lang); } catch (e) {}
+  var url = location.pathname + "?lang=" + lang;
+  try { history.replaceState(null, "", url); } catch (e) {}
+  applyLang(lang);
+}
+applyLang(currentLang());
+</script>
+</body>
+</html>
