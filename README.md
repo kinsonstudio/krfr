@@ -16,11 +16,7 @@
 
 <div align="center">
 
-### 🌐 Language / 语言
-
-**[English](https://kinsonstudio.github.io/krfr/?lang=en) · [简体中文](https://kinsonstudio.github.io/krfr/?lang=zh-CN) · [繁體中文](https://kinsonstudio.github.io/krfr/?lang=zh-TW)**
-
-*Click a language to read the whole README in that language, switch anytime in place · 点击语言，整页切换阅读语言，页面内可随时原地切换*
+**🌐 [English](./README.md) | [简体中文](./README.zh-CN.md) | [繁體中文](./README.zh-TW.md)**
 
 </div>
 
