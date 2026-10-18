@@ -18,12 +18,13 @@
 
 ### 🌐 Language / 语言
 
-Click a language title below to expand it in place · 点击下方语言标题，在当前页面展开对应版本
+**[English](#en) · [简体中文](#zh-cn) · [繁體中文](#zh-tw)**
 
 </div>
 
 ---
 
+<a id="en"></a>
 <details open>
 <summary><strong>🇬🇧 English</strong></summary>
 
@@ -121,6 +122,7 @@ This tool is for learning and research purposes only. Modifying carrier configur
 
 ---
 
+<a id="zh-cn"></a>
 <details>
 <summary><strong>🇨🇳 简体中文</strong></summary>
 
@@ -218,6 +220,7 @@ app/src/main/java/com/github/krfr/
 
 ---
 
+<a id="zh-tw"></a>
 <details>
 <summary><strong>🇭🇰 繁體中文</strong></summary>
 
