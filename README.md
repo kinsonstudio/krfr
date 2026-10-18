@@ -14,23 +14,18 @@
 
 </div>
 
----
-
 <div align="center">
 
 ### 🌐 Language / 语言
 
-**English** · [简体中文](#zh-cn) · [繁體中文](#zh-tw)
+Click a language title below to expand it in place · 点击下方语言标题，在当前页面展开对应版本
 
 </div>
 
-> **Tip:** New users get a language picker right after Shizuku authorization — it auto-matches your device system language (English by default). You can switch anytime in the app's Personalize tab.
-
 ---
 
-<a id="en"></a>
-
-## 🇬🇧 English
+<details open>
+<summary><strong>🇬🇧 English</strong></summary>
 
 ### 📥 Download
 
@@ -122,17 +117,12 @@ Upstream license: [Ackites/Nrfr LICENSE](https://github.com/Ackites/Nrfr/blob/ma
 
 This tool is for learning and research purposes only. Modifying carrier configuration may affect network, roaming and region detection. Use at your own risk.
 
-<div align="center">
-
-**[简体中文](#zh-cn)** · **[繁體中文](#zh-tw)** · **[⬆ Back to top](#en)**
-
-</div>
+</details>
 
 ---
 
-<a id="zh-cn"></a>
-
-## 🇨🇳 简体中文
+<details>
+<summary><strong>🇨🇳 简体中文</strong></summary>
 
 ### 📥 下载
 
@@ -224,17 +214,12 @@ app/src/main/java/com/github/krfr/
 
 本工具仅供学习研究。修改运营商配置可能影响网络、漫游与区域识别，请自行承担使用风险。
 
-<div align="center">
-
-**[English](#en)** · **[繁體中文](#zh-tw)** · **[⬆ 回到顶部](#zh-cn)**
-
-</div>
+</details>
 
 ---
 
-<a id="zh-tw"></a>
-
-## 🇭🇰 繁體中文
+<details>
+<summary><strong>🇭🇰 繁體中文</strong></summary>
 
 ### 📥 下載
 
@@ -326,11 +311,7 @@ app/src/main/java/com/github/krfr/
 
 本工具僅供學習研究。修改電訊商配置可能影響網絡、漫遊與地區識別，請自行承擔使用風險。
 
-<div align="center">
-
-**[English](#en)** · **[简体中文](#zh-cn)** · **[⬆ 回到頂部](#zh-tw)**
-
-</div>
+</details>
 
 ---
 
