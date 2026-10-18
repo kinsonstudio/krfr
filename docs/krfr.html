@@ -293,7 +293,7 @@
   <div class="phone-shot">
     <div class="phone">
       <div class="phone-notch"></div>
-      <img src="krfr-screen-1.jpg" alt="krfr config screen">
+      <img src="krfr-screen-1.jpg" alt="krfr config screen" data-i18n-img="shot_img">
     </div>
     <p class="shot-caption" data-i18n="shot_caption">Per-SIM independent config · China Broadnet / China Mobile, MCC/MNC &amp; carrier at a glance</p>
   </div>
@@ -397,6 +397,7 @@ var I18N = {
     "dl_note": "Slow download? Get a mirror from",
     "dl_note_gh": "GitHub Releases",
     "dl_note2": "(may be slower in some regions).",
+    "shot_img": "krfr-screen-en.jpg",
     "shot_caption": "Per-SIM independent config · China Broadnet / China Mobile, MCC/MNC & carrier at a glance",
     "sec_features": "Features",
     "f1_t": "MCC/MNC & Carrier Override",
@@ -454,6 +455,7 @@ var I18N = {
     "dl_note": "若下载速度慢，可到",
     "dl_note_gh": "GitHub Releases",
     "dl_note2": "获取备用下载（国内访问可能较慢）。",
+    "shot_img": "krfr-screen-1.jpg",
     "shot_caption": "双卡独立配置 · 中国广电 / 中国移动，国家码与运营商一目了然",
     "sec_features": "功能特性",
     "f1_t": "国家码 / 运营商覆盖",
@@ -511,6 +513,7 @@ var I18N = {
     "dl_note": "若下載速度慢，可到",
     "dl_note_gh": "GitHub Releases",
     "dl_note2": "取得備用下載（部分地區存取可能較慢）。",
+    "shot_img": "krfr-screen-zhTW.jpg",
     "shot_caption": "雙卡獨立配置 · 中國廣電 / 中國移動，國家碼與電訊商一目了然",
     "sec_features": "功能特性",
     "f1_t": "國家碼 / 電訊商覆蓋",
@@ -574,6 +577,11 @@ function applyLang(lang) {
   for (var i = 0; i < els.length; i++) {
     var key = els[i].getAttribute("data-i18n");
     if (dict[key] !== undefined) els[i].innerHTML = dict[key];
+  }
+  var imgs = document.querySelectorAll("[data-i18n-img]");
+  for (var k = 0; k < imgs.length; k++) {
+    var ikey = imgs[k].getAttribute("data-i18n-img");
+    if (dict[ikey] !== undefined) imgs[k].src = dict[ikey];
   }
   document.documentElement.lang = lang;
   document.title = lang === "en" ? "krfr · SIM Card MCC/MNC & Carrier Config Tool"
