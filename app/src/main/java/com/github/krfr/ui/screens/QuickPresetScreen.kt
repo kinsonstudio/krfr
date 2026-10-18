@@ -26,6 +26,7 @@ import com.github.krfr.data.nameFor
 import com.github.krfr.data.QuickPresets
 import com.github.krfr.manager.CarrierConfigManager
 import com.github.krfr.manager.LogStore
+import com.github.krfr.manager.LogTexts
 import com.github.krfr.manager.OperationState
 import com.github.krfr.manager.toSimCardsUserMessage
 import com.github.krfr.model.SimCardInfo
@@ -116,7 +117,7 @@ fun QuickPresetScreen() {
                 } else {
                     context.getString(R.string.apply_failed, e.message?.lineSequence()?.firstOrNull()?.take(120) ?: context.getString(R.string.unknown_error))
                 }
-                LogStore.e("快捷方案应用异常: ${e.message.orEmpty()}")
+                LogStore.e(LogTexts.t("preset_apply_failed", e.message.orEmpty()))
             } finally {
                 OperationState.end()
                 isApplying = false

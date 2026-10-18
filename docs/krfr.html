@@ -272,9 +272,9 @@
 
   <div class="dl-card">
     <div class="dl-meta">
-      <span class="version-tag">v1.0.9</span>
+      <span class="version-tag">v1.1.0</span>
       <span class="dl-date"><span data-i18n="dl_date">Updated</span> 2026-10-17</span>
-      <span class="dl-name">krfr-v1.0.9-release.apk</span>
+      <span class="dl-name">krfr-v1.1.0-release.apk</span>
     </div>
     <a class="dl-btn" href="krfr.apk" download>
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
@@ -316,7 +316,13 @@
     <h2 data-i18n="sec_changelog">Changelog</h2>
     <ul class="changelog">
       <li>
-        <div class="ver">v1.0.9<em>2026-10-17</em><span class="new-badge" data-i18n="badge_new">Latest</span></div>
+        <div class="ver">v1.1.0<em>2026-10-18</em><span class="new-badge" data-i18n="badge_new">Latest</span></div>
+        <ul>
+          <li data-i18n="c110a">Runtime log now follows the interface language (English / 简体中文 / 繁體中文) — no longer always Simplified Chinese.</li>
+        </ul>
+      </li>
+      <li>
+        <div class="ver">v1.0.9<em>2026-10-17</em></div>
         <ul>
           <li data-i18n="c109a">Fix: editing carrier name (SIM display name) sometimes did not take effect — save failures no longer falsely report "saved"; read-back verification after write; explicit error + runtime log when not applied.</li>
           <li data-i18n="c109b">Improved: after saving/resetting display name, the actual system name is refreshed automatically.</li>
@@ -418,6 +424,7 @@ var I18N = {
     "f8_d": "Powered by Shizuku, no root needed, safe and clean.",
     "sec_changelog": "Changelog",
     "badge_new": "Latest",
+    "c110a": "Runtime log now follows the interface language (English / 简体中文 / 繁體中文) — no longer always Simplified Chinese.",
     "c109a": "Fix: editing carrier name (SIM display name) sometimes did not take effect — save failures no longer falsely report \"saved\"; read-back verification after write; explicit error + runtime log when not applied.",
     "c109b": "Improved: after saving/resetting display name, the actual system name is refreshed automatically.",
     "c109c": "Fix: adapted to systems without ISub.setDisplayName (Android 16 / OPPO etc.) — multi-channel reflection fallback (HiddenApiBypass / ISubExt).",
@@ -476,6 +483,7 @@ var I18N = {
     "f8_d": "基于 Shizuku 授权，无需 root，安全无残留。",
     "sec_changelog": "更新日志",
     "badge_new": "最新",
+    "c110a": "运行日志跟随界面语言（英文 / 简体中文 / 繁體中文），不再固定为简体中文",
     "c109a": "修复：修改运营商名称（SIM 显示名）不生效——保存失败不再误报「已保存」，写后回读验证，未生效会明确提示并记录运行日志",
     "c109b": "优化：保存 / 还原显示名后自动刷新为系统当前实际名称",
     "c109c": "修复：适配部分系统（Android 16 / OPPO 等）ISub 无 setDisplayName 的情况——多通道反射（HiddenApiBypass / ISubExt）自动兜底",
@@ -534,6 +542,7 @@ var I18N = {
     "f8_d": "基於 Shizuku 授權，無需 root，安全無殘留。",
     "sec_changelog": "更新日誌",
     "badge_new": "最新",
+    "c110a": "執行日誌跟隨介面語言（英文 / 简体中文 / 繁體中文），不再固定為簡體中文",
     "c109a": "修復：修改電訊商名稱（SIM 顯示名稱）不生效——儲存失敗不再誤報「已儲存」，寫入後回讀驗證，未生效會明確提示並記錄執行日誌",
     "c109b": "優化：儲存 / 還原顯示名稱後自動刷新為系統目前實際名稱",
     "c109c": "修復：適配部分系統（Android 16 / OPPO 等）ISub 無 setDisplayName 的情況——多通道反射（HiddenApiBypass / ISubExt）自動兜底",

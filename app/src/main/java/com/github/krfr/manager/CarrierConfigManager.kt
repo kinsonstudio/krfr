@@ -1,4 +1,5 @@
 package com.github.krfr.manager
+import com.github.krfr.manager.LogTexts
 
 // 单 APK：Shizuku 直连 CarrierConfig，受限时委托 shell 权限回退；不用 am instrument shell（会 force-stop 闪退）。
 
@@ -51,9 +52,9 @@ object CarrierConfigManager {
         // 注意：不在这里把 dumpsys 快照写进 prefs（rememberLiveOverrides）。
         // 还原后 dumpsys 短暂残留旧值会被误记，开机回写会让已还原的覆盖“复活”。
         runCatching { ensureClearedAfterReboot(context) }
-            .onFailure { LogStore.w("开机回写失败: ${it.message.orEmpty()}") }
+            .onFailure { LogStore.w(LogTexts.t("boot_write_failed", it.message.orEmpty())) }
         runCatching { scrubOrphanBadges(context) }
-            .onFailure { LogStore.w("清除残留角标失败: ${it.message.orEmpty()}") }
+            .onFailure { LogStore.w(LogTexts.t("badge_clear_failed", it.message.orEmpty())) }
 
         val isubSnapshot = getIsubSnapshotByDumpsys(context)
         val configsByPhoneId = getCurrentConfigsByDumpsys()
@@ -90,12 +91,12 @@ object CarrierConfigManager {
                 isubSnapshot
             )
             if (config.isNotEmpty()) {
-                LogStore.i("SIM$slot(subId=$subId) 覆盖状态来源=$configSource 值=$config")
+                LogStore.i(LogTexts.t("sim_override_state", slot, subId, configSource, config))
             }
             simCards.add(SimCardInfo(slot, subId, carrierName, config))
         }
 
-        LogStore.i("读取 SIM 卡完成 用时 ${System.currentTimeMillis() - startedAt}ms 卡数=${simCards.size}")
+        LogStore.i(LogTexts.t("sim_read_done", System.currentTimeMillis() - startedAt, simCards.size))
         return simCards
     }
 
@@ -151,14 +152,14 @@ object CarrierConfigManager {
             futures.forEach { future ->
                 runCatching { future.get() }.onFailure {
                     failures++
-                    LogStore.e("还原失败: ${it.message.orEmpty()}")
+                    LogStore.e(LogTexts.t("reset_failed", it.message.orEmpty()))
                 }
             }
         } finally {
             executor.shutdown()
         }
         invalidateReadCaches()
-        LogStore.i("一键还原全部完成 用时 ${System.currentTimeMillis() - startedAt}ms 卡数=${futures.size}")
+        LogStore.i(LogTexts.t("reset_all_done", System.currentTimeMillis() - startedAt, futures.size))
         if (failures > 0) {
             throw IllegalStateException("有 $failures 张卡还原失败，请查看运行日志")
         }
@@ -286,7 +287,7 @@ object CarrierConfigManager {
         carrierName: String? = null
     ): CarrierConfigOperationResult {
         val startedAt = System.currentTimeMillis()
-        LogStore.i("设置配置 subId=$subId 国家码=${countryCode ?: "-"} 运营商=${carrierName ?: "-"}")
+        LogStore.i(LogTexts.t("config_set", subId, countryCode ?: "-", carrierName ?: "-"))
         val bundle = PersistableBundle()
 
         if (!countryCode.isNullOrEmpty() && countryCode.length == 2) {
@@ -306,7 +307,7 @@ object CarrierConfigManager {
         overrideCarrierConfig(context, subId, bundle)
         rememberSavedOverride(context, subId, countryCode, carrierName)
         invalidateReadCaches()
-        LogStore.i("已保存 subId=$subId 国家码=${countryCode.orEmpty()} 运营商=${carrierName.orEmpty()}")
+        LogStore.i(LogTexts.t("config_saved", subId, countryCode.orEmpty(), carrierName.orEmpty()))
         return CarrierConfigOperationResult()
     }
 
@@ -315,7 +316,7 @@ object CarrierConfigManager {
         overrideCarrierConfig(context, subId, null)
         clearSavedOverride(context, subId)
         invalidateReadCaches()
-        LogStore.i("已还原 subId=$subId 用时 ${System.currentTimeMillis() - startedAt}ms")
+        LogStore.i(LogTexts.t("config_reset", subId, System.currentTimeMillis() - startedAt))
         return CarrierConfigOperationResult()
     }
 
@@ -383,7 +384,7 @@ object CarrierConfigManager {
                 // 还原（清空覆盖）必须确认真正生效，避免“假成功”导致页面一直显示已覆盖
                 throw IllegalStateException("还原未生效：系统仍存在覆盖配置，请查看运行日志")
             }
-            LogStore.w("配置已提交但生效确认超时 subId=$subId bundle=${bundle != null}，系统会继续异步生效")
+            LogStore.w(LogTexts.t("confirm_timeout", subId, bundle != null))
         }
         return usedInstrumentation
     }

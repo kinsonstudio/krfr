@@ -48,6 +48,7 @@ import com.github.krfr.data.nameFor
 import com.github.krfr.data.PresetCarriers
 import com.github.krfr.manager.CarrierConfigManager
 import com.github.krfr.manager.LogStore
+import com.github.krfr.manager.LogTexts
 import com.github.krfr.manager.OperationState
 import com.github.krfr.manager.toSimCardsUserMessage
 import com.github.krfr.model.SimCardInfo
@@ -251,7 +252,7 @@ fun ConfigScreen() {
                                     } else {
                                         context.getString(R.string.reset_all_failed, formatErrorMessage(context, e))
                                     }
-                                    LogStore.e("全部还原异常: ${e.message.orEmpty()}")
+                                    LogStore.e(LogTexts.t("reset_all_failed", e.message.orEmpty()))
                                     delay(400)
                                     refreshSimCards()
                                 } finally {
@@ -385,7 +386,7 @@ fun ConfigScreen() {
                             } else {
                                 context.getString(R.string.reset_failed, formatErrorMessage(context, e))
                             }
-                            LogStore.e("还原异常: ${e.message.orEmpty()}")
+                            LogStore.e(LogTexts.t("restore_exception", e.message.orEmpty()))
                             delay(400)
                             refreshSimCards()
                         } finally {
@@ -434,7 +435,7 @@ fun ConfigScreen() {
                             } else {
                                 context.getString(R.string.save_failed, formatErrorMessage(context, e))
                             }
-                            LogStore.e("保存异常: ${e.message.orEmpty()}")
+                            LogStore.e(LogTexts.t("save_exception", e.message.orEmpty()))
                             delay(400)
                             refreshSimCards()
                         } finally {

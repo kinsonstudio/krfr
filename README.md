@@ -99,7 +99,7 @@ app/src/main/java/com/github/krfr/
 
 - **Kotlin + Jetpack Compose** (Material 3)
 - **Shizuku** (`rikka.shizuku:api:13.1.5`) + HiddenApiBypass, fully rootless
-- Package `com.github.krfr` · Latest version v1.0.9
+- Package `com.github.krfr` · Latest version v1.1.0
 - minSdk 26 / targetSdk 35 / compileSdk 36
 
 ### 📄 License

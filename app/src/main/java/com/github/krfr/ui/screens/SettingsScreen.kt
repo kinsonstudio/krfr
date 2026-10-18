@@ -40,6 +40,7 @@ import com.github.krfr.manager.AppUpdateManager
 import com.github.krfr.manager.BackupManager
 import com.github.krfr.manager.CarrierConfigManager
 import com.github.krfr.manager.LogStore
+import com.github.krfr.manager.LogTexts
 import com.github.krfr.manager.OperationState
 import com.github.krfr.manager.toSimCardsUserMessage
 import com.github.krfr.ui.HongguoStyleUpdateDialog
@@ -122,7 +123,7 @@ fun SettingsScreen(
             }.onSuccess { count ->
                 statusIsError = false
                 statusMessage = context.getString(R.string.restore_done, count)
-                LogStore.i("恢复备份完成，已应用 $count 个卡槽")
+                LogStore.i(LogTexts.t("backup_restored", count))
             }.onFailure {
                 statusIsError = true
                 statusMessage = if (OperationState.wasCancelled()) {
@@ -130,7 +131,7 @@ fun SettingsScreen(
                 } else {
                     context.getString(R.string.restore_failed, it.message ?: context.getString(R.string.invalid_file)).take(200)
                 }
-                LogStore.e("恢复备份异常: ${it.message.orEmpty()}")
+                LogStore.e(LogTexts.t("backup_restore_failed", it.message.orEmpty()))
             }
             isBusy = false
         }
@@ -383,7 +384,7 @@ private fun LogDialog(
                 out.write(LogStore.exportText().toByteArray(Charsets.UTF_8))
             } ?: error(appContext.getString(R.string.cannot_write_export))
         }.onFailure {
-            LogStore.e("导出日志失败: ${it.message.orEmpty()}")
+            LogStore.e(LogTexts.t("log_export_failed", it.message.orEmpty()))
         }
     }
     AlertDialog(
@@ -440,7 +441,7 @@ private fun LogDialog(
                                     LogStore.exportText()
                                 )
                             )
-                        }.onFailure { LogStore.e("复制日志失败: ${it.message.orEmpty()}") }
+                        }.onFailure { LogStore.e(LogTexts.t("log_copy_failed", it.message.orEmpty())) }
                     }) {
                         Text(stringResource(R.string.copy_logs))
                     }

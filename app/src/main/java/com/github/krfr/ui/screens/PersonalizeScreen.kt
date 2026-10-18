@@ -30,6 +30,7 @@ import com.github.krfr.R
 import com.github.krfr.data.SettingsStore
 import com.github.krfr.manager.CarrierConfigManager
 import com.github.krfr.manager.LogStore
+import com.github.krfr.manager.LogTexts
 import com.github.krfr.manager.SubscriptionHiddenApi
 import com.github.krfr.model.SimCardInfo
 import com.github.krfr.ui.components.PageHeader
@@ -421,7 +422,7 @@ fun PersonalizeScreen(
                                         R.string.name_save_failed,
                                         it.message ?: context.getString(R.string.unknown_error)
                                     )
-                                    LogStore.e("SIM 显示名保存失败 subId=${card.subId}: ${it.message.orEmpty()}")
+                                    LogStore.e(LogTexts.t("sim_name_save_failed", card.subId, it.message.orEmpty()))
                                 }
                             }
                         },
@@ -444,7 +445,7 @@ fun PersonalizeScreen(
                                         R.string.name_reset_failed,
                                         it.message ?: context.getString(R.string.unknown_error)
                                     )
-                                    LogStore.e("SIM 显示名重置失败 subId=${card.subId}: ${it.message.orEmpty()}")
+                                    LogStore.e(LogTexts.t("sim_name_reset_failed", card.subId, it.message.orEmpty()))
                                 }
                             }
                         }

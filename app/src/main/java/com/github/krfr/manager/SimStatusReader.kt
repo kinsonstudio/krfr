@@ -1,4 +1,5 @@
 package com.github.krfr.manager
+import com.github.krfr.manager.LogTexts
 
 import android.content.Context
 import android.os.IBinder
@@ -66,7 +67,7 @@ object SimStatusReader {
                 executor.shutdown()
             }
         }
-        LogStore.i("读取 SIM 状态完成 用时 ${System.currentTimeMillis() - startedAt}ms 卡数=${result.size}")
+        LogStore.i(LogTexts.t("sim_status_done", System.currentTimeMillis() - startedAt, result.size))
         return result
     }
 

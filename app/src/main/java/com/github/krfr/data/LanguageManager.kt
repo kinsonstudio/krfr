@@ -11,6 +11,20 @@ object LanguageManager {
     private const val PREFS = "krfr_settings"
     private const val KEY_LANG = "app_lang"
 
+    @Volatile
+    private var cachedAppContext: Context? = null
+
+    /** 供非 UI 层（如日志模块）取当前语言使用，应用启动时注入一次 */
+    fun initApp(context: Context) {
+        cachedAppContext = context.applicationContext
+    }
+
+    /** 无 context 时取当前生效语言；未初始化缓存返回 "en" 兜底 */
+    fun currentLangCached(): String {
+        val ctx = cachedAppContext ?: return "en"
+        return currentLang(ctx)
+    }
+
     fun readLanguage(context: Context): String? {
         return context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
             .getString(KEY_LANG, null)

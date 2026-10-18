@@ -80,6 +80,7 @@ class MainActivity : ComponentActivity() {
         themeStyle = SettingsStore.readThemeStyle(this)
         backgroundPath = SettingsStore.readBackgroundPath(this)
         appLang = LanguageManager.readLanguage(this)
+        LanguageManager.initApp(this)
         LogStore.restore(applicationContext)
 
         runCatching {
