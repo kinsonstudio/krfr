@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>krfr · SIM 卡国家码与运营商配置工具</title>
-<meta name="description" content="krfr - 开源的 SIM 卡国家码与运营商配置修改工具，基于 Shizuku 免 root 运行，双卡可分别配置。由 KinsonStudio 制作。">
+<title>krfr · SIM Card MCC/MNC &amp; Carrier Config Tool</title>
+<meta name="description" content="krfr - open-source SIM card MCC/MNC & carrier configuration tool, powered by Shizuku, no root required, per-SIM independent config. Made by KinsonStudio.">
 <style>
   :root {
     --bg: #F8F4ED;
@@ -52,6 +52,35 @@
   .brand-name { font-size: 34px; font-weight: 800; letter-spacing: 1px; }
   .brand-sub { font-size: 15px; opacity: 0.85; margin-top: 4px; }
   .slogan { font-size: 17px; margin-top: 26px; max-width: 600px; opacity: 0.95; }
+
+  /* ===== 语言切换 ===== */
+  .lang-bar {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    padding: 18px 0 6px;
+  }
+  .lang-bar .globe { color: var(--sand); font-size: 15px; margin-right: 6px; }
+  .lang-btn {
+    border: 1px solid var(--line);
+    background: var(--card);
+    color: var(--ink-soft);
+    font-size: 13.5px;
+    font-weight: 600;
+    text-decoration: none;
+    padding: 6px 14px;
+    border-radius: 999px;
+    transition: all 0.15s ease;
+    cursor: pointer;
+  }
+  .lang-btn:hover { border-color: var(--link); color: var(--link); }
+  .lang-btn.active {
+    background: var(--link);
+    border-color: var(--link);
+    color: #F2EFE4;
+  }
 
   /* ===== 下载卡片（正常文档流，不用负边距遮挡，避免手机上内容被顶掉）===== */
   .dl-card {
@@ -225,18 +254,26 @@
       </svg>
       <div>
         <div class="brand-name">krfr</div>
-        <div class="brand-sub">SIM 卡国家码 · 运营商配置工具</div>
+        <div class="brand-sub" data-i18n="brand_sub">SIM Card MCC/MNC · Carrier Configuration Tool</div>
       </div>
     </div>
-    <div class="slogan">免 root 修改 SIM 卡国家码与运营商覆盖，基于 Shizuku 运行，双卡独立配置，配置一键备份与还原。</div>
+    <div class="slogan" data-i18n="slogan">Change SIM card country code &amp; carrier override without root — powered by Shizuku, per-SIM independent config, one-tap backup &amp; restore.</div>
   </div>
 </header>
 
 <main class="wrap">
+  <!-- 语言切换（下滑一点点即可看到） -->
+  <div class="lang-bar">
+    <span class="globe">🌐</span>
+    <a class="lang-btn" data-lang="en" href="#" onclick="setLang('en');return false;">English</a>
+    <a class="lang-btn" data-lang="zh-CN" href="#" onclick="setLang('zh-CN');return false;">简体中文</a>
+    <a class="lang-btn" data-lang="zh-TW" href="#" onclick="setLang('zh-TW');return false;">繁體中文</a>
+  </div>
+
   <div class="dl-card">
     <div class="dl-meta">
       <span class="version-tag">v1.0.9</span>
-      <span class="dl-date">2026-10-17 更新</span>
+      <span class="dl-date"><span data-i18n="dl_date">Updated</span> 2026-10-17</span>
       <span class="dl-name">krfr-v1.0.9-release.apk</span>
     </div>
     <a class="dl-btn" href="krfr.apk" download>
@@ -244,100 +281,100 @@
         <path d="M12 3v12m0 0l-4.5-4.5M12 15l4.5-4.5"/>
         <path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/>
       </svg>
-      下载最新版 APK
+      <span data-i18n="dl_btn">Download Latest APK</span>
     </a>
     <div class="dl-note">
-      若下载速度慢，可到
-      <a href="https://github.com/kinsonstudio/krfr/releases" target="_blank" rel="noopener">GitHub Releases</a>
-      获取备用下载（国内访问可能较慢）。
+      <span data-i18n="dl_note">Slow download? Get a mirror from</span>
+      <a href="https://github.com/kinsonstudio/krfr/releases" target="_blank" rel="noopener" data-i18n="dl_note_gh">GitHub Releases</a>
+      <span data-i18n="dl_note2">(may be slower in some regions).</span>
     </div>
   </div>
 
   <div class="phone-shot">
     <div class="phone">
       <div class="phone-notch"></div>
-      <img src="krfr-screen-1.jpg" alt="krfr 配置页：双卡独立配置国家码与运营商">
+      <img src="krfr-screen-1.jpg" alt="krfr config screen">
     </div>
-    <p class="shot-caption">双卡独立配置 · 中国广电 / 中国移动，国家码与运营商一目了然</p>
+    <p class="shot-caption" data-i18n="shot_caption">Per-SIM independent config · China Broadnet / China Mobile, MCC/MNC &amp; carrier at a glance</p>
   </div>
 
   <section>
-    <h2>功能特性</h2>
+    <h2 data-i18n="sec_features">Features</h2>
     <div class="grid">
-      <div class="feature"><b>国家码 / 运营商覆盖</b><span>双 SIM 卡分别配置国家码与运营商名称，支持自定义。</span></div>
-      <div class="feature"><b>SIM 卡详细状态</b><span>实时查看信号强度、网络类型、MCC/MNC、漫游与 ICCID。</span></div>
-      <div class="feature"><b>配置备份与还原</b><span>一键备份全部配置，随时恢复，支持主卡副卡一起还原。</span></div>
-      <div class="feature"><b>快捷方案</b><span>常用配置存为方案，一键切换，无需重复填写。</span></div>
-      <div class="feature"><b>个性化外观</b><span>4 套配色主题、明暗模式、上传图片做背景，还能改 SIM 卡显示名。</span></div>
-      <div class="feature"><b>三语支持</b><span>英文（默认）/ 简体中文 / 繁體中文，首次进入先选语言。</span></div>
-      <div class="feature"><b>运行日志</b><span>操作全程记录，可查看、复制、导出，问题一目了然。</span></div>
-      <div class="feature"><b>免 root · Shizuku</b><span>基于 Shizuku 授权，无需 root，安全无残留。</span></div>
+      <div class="feature"><b data-i18n="f1_t">MCC/MNC &amp; Carrier Override</b><span data-i18n="f1_d">Configure country code &amp; carrier name per SIM independently, custom values supported.</span></div>
+      <div class="feature"><b data-i18n="f2_t">Live SIM Status</b><span data-i18n="f2_d">Signal strength, network type, MCC/MNC, roaming state &amp; masked ICCID in real time.</span></div>
+      <div class="feature"><b data-i18n="f3_t">Backup &amp; Restore</b><span data-i18n="f3_d">One-tap backup of all configs, restore anytime, dual SIM together.</span></div>
+      <div class="feature"><b data-i18n="f4_t">Quick Presets</b><span data-i18n="f4_d">Save common configs as presets and switch with one tap.</span></div>
+      <div class="feature"><b data-i18n="f5_t">Personalize</b><span data-i18n="f5_d">4 color themes, light/dark mode, custom background image, edit SIM display name.</span></div>
+      <div class="feature"><b data-i18n="f6_t">Trilingual UI</b><span data-i18n="f6_d">English (default) / 简体中文 / 繁體中文, language picked on first launch.</span></div>
+      <div class="feature"><b data-i18n="f7_t">Runtime Log</b><span data-i18n="f7_d">Every operation logged — view, copy, export, easy to troubleshoot.</span></div>
+      <div class="feature"><b data-i18n="f8_t">No Root · Shizuku</b><span data-i18n="f8_d">Powered by Shizuku, no root needed, safe and clean.</span></div>
     </div>
   </section>
 
   <section>
-    <h2>更新日志</h2>
+    <h2 data-i18n="sec_changelog">Changelog</h2>
     <ul class="changelog">
       <li>
-        <div class="ver">v1.0.9<em>2026-10-17</em><span class="new-badge">最新</span></div>
+        <div class="ver">v1.0.9<em>2026-10-17</em><span class="new-badge" data-i18n="badge_new">Latest</span></div>
         <ul>
-          <li>修复：修改运营商名称（SIM 显示名）不生效——保存失败不再误报「已保存」，写后回读验证，未生效会明确提示并记录运行日志</li>
-          <li>优化：保存 / 还原显示名后自动刷新为系统当前实际名称</li>
-          <li>修复：适配部分系统（Android 16 / OPPO 等）ISub 无 setDisplayName 的情况——多通道反射（HiddenApiBypass / ISubExt）自动兜底</li>
+          <li data-i18n="c109a">Fix: editing carrier name (SIM display name) sometimes did not take effect — save failures no longer falsely report "saved"; read-back verification after write; explicit error + runtime log when not applied.</li>
+          <li data-i18n="c109b">Improved: after saving/resetting display name, the actual system name is refreshed automatically.</li>
+          <li data-i18n="c109c">Fix: adapted to systems without ISub.setDisplayName (Android 16 / OPPO etc.) — multi-channel reflection fallback (HiddenApiBypass / ISubExt).</li>
         </ul>
       </li>
       <li>
         <div class="ver">v1.0.8<em>2026-10-16</em></div>
         <ul>
-          <li>新增「个性化」页面：4 套配色主题（墨绿 / 海蓝 / 暖橙 / 玫红）、明暗模式、上传图片作为应用背景</li>
-          <li>SIM 卡个性化：可修改每张 SIM 卡的显示名（状态栏卡名），支持一键还原默认</li>
-          <li>三语支持：英文 / 简体中文 / 繁體中文，全部界面文字本地化</li>
-          <li>快捷方案、国家码列表、运营商名称等数据内容全部跟随应用语言切换（中 / 英 / 繁）</li>
-          <li>首次进入（Shizuku 授权后）进入语言设置界面，自动匹配手机系统语言并高亮，可随时在个性化页切换</li>
+          <li data-i18n="c108a">New "Personalize" tab: 4 color themes (dark green / ocean blue / warm orange / rose), light &amp; dark modes, custom background image.</li>
+          <li data-i18n="c108b">SIM personalization: edit each SIM's display name (status bar card name), one-tap restore to default.</li>
+          <li data-i18n="c108c">Trilingual UI: English / Simplified / Traditional Chinese, fully localized.</li>
+          <li data-i18n="c108d">Quick presets, country code list &amp; carrier names all follow the app language.</li>
+          <li data-i18n="c108e">Language picker on first launch (after Shizuku grant), auto-matches system language, switchable anytime in Personalize tab.</li>
         </ul>
       </li>
       <li>
         <div class="ver">v1.0.7<em>2026-10-16</em></div>
         <ul>
-          <li>修复：还原后仍显示旧覆盖运营商名（如 3HK / au by KDDI）的问题</li>
-          <li>运营商名称改为基于 SIM 真实 MCC/MNC 自动识别（经 Shizuku 直读，46015=中国广电、46002=中国移动等）</li>
+          <li data-i18n="c107a">Fix: restored config still showed old overridden carrier name (e.g. 3HK / au by KDDI).</li>
+          <li data-i18n="c107b">Carrier name now resolved from real SIM MCC/MNC via Shizuku (46015=China Broadnet, 46002=China Mobile, etc.).</li>
         </ul>
       </li>
       <li>
         <div class="ver">v1.0.4<em>2026-10-15</em></div>
         <ul>
-          <li>检查更新改用国内服务器接口，检查更快更稳（GitHub 自动兜底）</li>
+          <li data-i18n="c104a">Update check now uses a fast domestic server first (GitHub API as fallback).</li>
         </ul>
       </li>
       <li>
         <div class="ver">v1.0.2<em>2026-10-15</em></div>
         <ul>
-          <li>修复：配置已还原后仍显示「已覆盖」的误判，改为读取系统真实状态</li>
-          <li>修复：报错后运行日志为空的问题，所有操作错误均写入日志</li>
-          <li>新增：日志一键复制、导出为文件</li>
-          <li>还原 / 保存后页面自动刷新，不再残留旧数据</li>
+          <li data-i18n="c102a">Fix: "covered" misjudgment after config restored — now reads the real system state.</li>
+          <li data-i18n="c102b">Fix: empty runtime log after errors — all operation errors are now logged.</li>
+          <li data-i18n="c102c">New: one-tap copy / export log as file.</li>
+          <li data-i18n="c102d">Page auto-refreshes after restore/save, no stale data.</li>
         </ul>
       </li>
       <li>
         <div class="ver">v1.0.1<em>2026-10-15</em></div>
         <ul>
-          <li>一键还原大幅提速：双卡并行、去掉重复阻塞同步</li>
-          <li>保存 / 读取速度优化：服务实例缓存、超时保护</li>
-          <li>新增强制清除任务：操作卡住时可强制终止</li>
-          <li>交互动效优化：页面切换动画、按钮按压反馈</li>
+          <li data-i18n="c101a">One-tap restore much faster: dual SIM in parallel, removed duplicate blocking sync.</li>
+          <li data-i18n="c101b">Save/read speed: service instance cache, timeout protection.</li>
+          <li data-i18n="c101c">New: force-clear task for stuck operations.</li>
+          <li data-i18n="c101d">Interaction polish: page transitions, button press feedback.</li>
         </ul>
       </li>
     </ul>
   </section>
 
   <section>
-    <h2>使用须知</h2>
+    <h2 data-i18n="sec_notice">Usage Notes</h2>
     <div class="notice">
       <ul>
-        <li>需要已安装并授权 <b>Shizuku</b>（免 root 授权方案）。</li>
-        <li>修改国家码 / 运营商覆盖仅影响部分应用的地区判定逻辑，请按需使用。</li>
-        <li>本工具仅用于学习与技术研究，请勿用于违规用途。</li>
-        <li>开源项目：由 <b>KinsonStudio</b> 制作 · 基于 Nrfr 开源，遵循 Apache-2.0 许可。</li>
+        <li data-i18n="n1"><b>Shizuku</b> must be installed &amp; authorized (rootless authorization).</li>
+        <li data-i18n="n2">Changing MCC/MNC &amp; carrier override only affects region detection in some apps — use as needed.</li>
+        <li data-i18n="n3">For learning &amp; research only; do not use for unlawful purposes.</li>
+        <li data-i18n="n4">Open source: made by <b>KinsonStudio</b> · based on Nrfr, licensed under Apache-2.0.</li>
       </ul>
     </div>
   </section>
@@ -345,10 +382,213 @@
 
 <footer>
   <div class="wrap">
-    由 <a href="https://github.com/kinsonstudio" target="_blank" rel="noopener">KinsonStudio</a> 制作 · 基于 Nrfr 开源 · <a href="https://github.com/kinsonstudio/krfr" target="_blank" rel="noopener">GitHub 仓库</a><br>
-    源代码完全开源，欢迎 Star &amp; 贡献
+    <span data-i18n="ft1">Made by</span> <a href="https://github.com/kinsonstudio" target="_blank" rel="noopener">KinsonStudio</a> · <span data-i18n="ft2">based on Nrfr</span> · <a href="https://github.com/kinsonstudio/krfr" target="_blank" rel="noopener" data-i18n="ft3">GitHub Repo</a><br>
+    <span data-i18n="ft4">Fully open source — Star &amp; contribute welcome</span>
   </div>
 </footer>
+
+<script>
+var I18N = {
+  "en": {
+    "brand_sub": "SIM Card MCC/MNC · Carrier Configuration Tool",
+    "slogan": "Change SIM card country code & carrier override without root — powered by Shizuku, per-SIM independent config, one-tap backup & restore.",
+    "dl_date": "Updated",
+    "dl_btn": "Download Latest APK",
+    "dl_note": "Slow download? Get a mirror from",
+    "dl_note_gh": "GitHub Releases",
+    "dl_note2": "(may be slower in some regions).",
+    "shot_caption": "Per-SIM independent config · China Broadnet / China Mobile, MCC/MNC & carrier at a glance",
+    "sec_features": "Features",
+    "f1_t": "MCC/MNC & Carrier Override",
+    "f1_d": "Configure country code & carrier name per SIM independently, custom values supported.",
+    "f2_t": "Live SIM Status",
+    "f2_d": "Signal strength, network type, MCC/MNC, roaming state & masked ICCID in real time.",
+    "f3_t": "Backup & Restore",
+    "f3_d": "One-tap backup of all configs, restore anytime, dual SIM together.",
+    "f4_t": "Quick Presets",
+    "f4_d": "Save common configs as presets and switch with one tap.",
+    "f5_t": "Personalize",
+    "f5_d": "4 color themes, light/dark mode, custom background image, edit SIM display name.",
+    "f6_t": "Trilingual UI",
+    "f6_d": "English (default) / 简体中文 / 繁體中文, language picked on first launch.",
+    "f7_t": "Runtime Log",
+    "f7_d": "Every operation logged — view, copy, export, easy to troubleshoot.",
+    "f8_t": "No Root · Shizuku",
+    "f8_d": "Powered by Shizuku, no root needed, safe and clean.",
+    "sec_changelog": "Changelog",
+    "badge_new": "Latest",
+    "c109a": "Fix: editing carrier name (SIM display name) sometimes did not take effect — save failures no longer falsely report \"saved\"; read-back verification after write; explicit error + runtime log when not applied.",
+    "c109b": "Improved: after saving/resetting display name, the actual system name is refreshed automatically.",
+    "c109c": "Fix: adapted to systems without ISub.setDisplayName (Android 16 / OPPO etc.) — multi-channel reflection fallback (HiddenApiBypass / ISubExt).",
+    "c108a": "New \"Personalize\" tab: 4 color themes (dark green / ocean blue / warm orange / rose), light & dark modes, custom background image.",
+    "c108b": "SIM personalization: edit each SIM's display name (status bar card name), one-tap restore to default.",
+    "c108c": "Trilingual UI: English / Simplified / Traditional Chinese, fully localized.",
+    "c108d": "Quick presets, country code list & carrier names all follow the app language.",
+    "c108e": "Language picker on first launch (after Shizuku grant), auto-matches system language, switchable anytime in Personalize tab.",
+    "c107a": "Fix: restored config still showed old overridden carrier name (e.g. 3HK / au by KDDI).",
+    "c107b": "Carrier name now resolved from real SIM MCC/MNC via Shizuku (46015=China Broadnet, 46002=China Mobile, etc.).",
+    "c104a": "Update check now uses a fast domestic server first (GitHub API as fallback).",
+    "c102a": "Fix: \"covered\" misjudgment after config restored — now reads the real system state.",
+    "c102b": "Fix: empty runtime log after errors — all operation errors are now logged.",
+    "c102c": "New: one-tap copy / export log as file.",
+    "c102d": "Page auto-refreshes after restore/save, no stale data.",
+    "c101a": "One-tap restore much faster: dual SIM in parallel, removed duplicate blocking sync.",
+    "c101b": "Save/read speed: service instance cache, timeout protection.",
+    "c101c": "New: force-clear task for stuck operations.",
+    "c101d": "Interaction polish: page transitions, button press feedback.",
+    "sec_notice": "Usage Notes",
+    "n1": "<b>Shizuku</b> must be installed & authorized (rootless authorization).",
+    "n2": "Changing MCC/MNC & carrier override only affects region detection in some apps — use as needed.",
+    "n3": "For learning & research only; do not use for unlawful purposes.",
+    "n4": "Open source: made by <b>KinsonStudio</b> · based on Nrfr, licensed under Apache-2.0.",
+    "ft1": "Made by",
+    "ft2": "based on Nrfr",
+    "ft3": "GitHub Repo",
+    "ft4": "Fully open source — Star & contribute welcome"
+  },
+  "zh-CN": {
+    "brand_sub": "SIM 卡国家码 · 运营商配置工具",
+    "slogan": "免 root 修改 SIM 卡国家码与运营商覆盖，基于 Shizuku 运行，双卡独立配置，配置一键备份与还原。",
+    "dl_date": "更新于",
+    "dl_btn": "下载最新版 APK",
+    "dl_note": "若下载速度慢，可到",
+    "dl_note_gh": "GitHub Releases",
+    "dl_note2": "获取备用下载（国内访问可能较慢）。",
+    "shot_caption": "双卡独立配置 · 中国广电 / 中国移动，国家码与运营商一目了然",
+    "sec_features": "功能特性",
+    "f1_t": "国家码 / 运营商覆盖",
+    "f1_d": "双 SIM 卡分别配置国家码与运营商名称，支持自定义。",
+    "f2_t": "SIM 卡详细状态",
+    "f2_d": "实时查看信号强度、网络类型、MCC/MNC、漫游与 ICCID。",
+    "f3_t": "配置备份与还原",
+    "f3_d": "一键备份全部配置，随时恢复，支持主卡副卡一起还原。",
+    "f4_t": "快捷方案",
+    "f4_d": "常用配置存为方案，一键切换，无需重复填写。",
+    "f5_t": "个性化外观",
+    "f5_d": "4 套配色主题、明暗模式、上传图片做背景，还能改 SIM 卡显示名。",
+    "f6_t": "三语支持",
+    "f6_d": "英文（默认）/ 简体中文 / 繁體中文，首次进入先选语言。",
+    "f7_t": "运行日志",
+    "f7_d": "操作全程记录，可查看、复制、导出，问题一目了然。",
+    "f8_t": "免 root · Shizuku",
+    "f8_d": "基于 Shizuku 授权，无需 root，安全无残留。",
+    "sec_changelog": "更新日志",
+    "badge_new": "最新",
+    "c109a": "修复：修改运营商名称（SIM 显示名）不生效——保存失败不再误报「已保存」，写后回读验证，未生效会明确提示并记录运行日志",
+    "c109b": "优化：保存 / 还原显示名后自动刷新为系统当前实际名称",
+    "c109c": "修复：适配部分系统（Android 16 / OPPO 等）ISub 无 setDisplayName 的情况——多通道反射（HiddenApiBypass / ISubExt）自动兜底",
+    "c108a": "新增「个性化」页面：4 套配色主题（墨绿 / 海蓝 / 暖橙 / 玫红）、明暗模式、上传图片作为应用背景",
+    "c108b": "SIM 卡个性化：可修改每张 SIM 卡的显示名（状态栏卡名），支持一键还原默认",
+    "c108c": "三语支持：英文 / 简体中文 / 繁體中文，全部界面文字本地化",
+    "c108d": "快捷方案、国家码列表、运营商名称等数据内容全部跟随应用语言切换（中 / 英 / 繁）",
+    "c108e": "首次进入（Shizuku 授权后）进入语言设置界面，自动匹配手机系统语言并高亮，可随时在个性化页切换",
+    "c107a": "修复：还原后仍显示旧覆盖运营商名（如 3HK / au by KDDI）的问题",
+    "c107b": "运营商名称改为基于 SIM 真实 MCC/MNC 自动识别（经 Shizuku 直读，46015=中国广电、46002=中国移动等）",
+    "c104a": "检查更新改用国内服务器接口，检查更快更稳（GitHub 自动兜底）",
+    "c102a": "修复：配置已还原后仍显示「已覆盖」的误判，改为读取系统真实状态",
+    "c102b": "修复：报错后运行日志为空的问题，所有操作错误均写入日志",
+    "c102c": "新增：日志一键复制、导出为文件",
+    "c102d": "还原 / 保存后页面自动刷新，不再残留旧数据",
+    "c101a": "一键还原大幅提速：双卡并行、去掉重复阻塞同步",
+    "c101b": "保存 / 读取速度优化：服务实例缓存、超时保护",
+    "c101c": "新增强制清除任务：操作卡住时可强制终止",
+    "c101d": "交互动效优化：页面切换动画、按钮按压反馈",
+    "sec_notice": "使用须知",
+    "n1": "需要已安装并授权 <b>Shizuku</b>（免 root 授权方案）。",
+    "n2": "修改国家码 / 运营商覆盖仅影响部分应用的地区判定逻辑，请按需使用。",
+    "n3": "本工具仅用于学习与技术研究，请勿用于违规用途。",
+    "n4": "开源项目：由 <b>KinsonStudio</b> 制作 · 基于 Nrfr 开源，遵循 Apache-2.0 许可。",
+    "ft1": "由",
+    "ft2": "制作 · 基于 Nrfr 开源",
+    "ft3": "GitHub 仓库",
+    "ft4": "源代码完全开源，欢迎 Star & 贡献"
+  },
+  "zh-TW": {
+    "brand_sub": "SIM 卡國家碼 · 電訊商配置工具",
+    "slogan": "免 root 修改 SIM 卡國家碼與電訊商覆蓋，基於 Shizuku 運行，雙卡獨立配置，配置一鍵備份與還原。",
+    "dl_date": "更新於",
+    "dl_btn": "下載最新版 APK",
+    "dl_note": "若下載速度慢，可到",
+    "dl_note_gh": "GitHub Releases",
+    "dl_note2": "取得備用下載（部分地區存取可能較慢）。",
+    "shot_caption": "雙卡獨立配置 · 中國廣電 / 中國移動，國家碼與電訊商一目了然",
+    "sec_features": "功能特性",
+    "f1_t": "國家碼 / 電訊商覆蓋",
+    "f1_d": "雙 SIM 卡分別配置國家碼與電訊商名稱，支援自訂。",
+    "f2_t": "SIM 卡詳細狀態",
+    "f2_d": "即時查看訊號強度、網絡類型、MCC/MNC、漫遊與 ICCID。",
+    "f3_t": "配置備份與還原",
+    "f3_d": "一鍵備份全部配置，隨時還原，支援主卡副卡一起還原。",
+    "f4_t": "快捷方案",
+    "f4_d": "常用配置存為方案，一鍵切換，無需重複填寫。",
+    "f5_t": "個人化外觀",
+    "f5_d": "4 套配色主題、明暗模式、上傳圖片做背景，還能改 SIM 卡顯示名稱。",
+    "f6_t": "三語支援",
+    "f6_d": "英文（預設）/ 简体中文 / 繁體中文，首次進入先選語言。",
+    "f7_t": "執行日誌",
+    "f7_d": "操作全程記錄，可檢視、複製、匯出，問題一目了然。",
+    "f8_t": "免 root · Shizuku",
+    "f8_d": "基於 Shizuku 授權，無需 root，安全無殘留。",
+    "sec_changelog": "更新日誌",
+    "badge_new": "最新",
+    "c109a": "修復：修改電訊商名稱（SIM 顯示名稱）不生效——儲存失敗不再誤報「已儲存」，寫入後回讀驗證，未生效會明確提示並記錄執行日誌",
+    "c109b": "優化：儲存 / 還原顯示名稱後自動刷新為系統目前實際名稱",
+    "c109c": "修復：適配部分系統（Android 16 / OPPO 等）ISub 無 setDisplayName 的情況——多通道反射（HiddenApiBypass / ISubExt）自動兜底",
+    "c108a": "新增「個人化」頁面：4 套配色主題（墨綠 / 海藍 / 暖橙 / 玫紅）、明暗模式、上傳圖片作為應用程式背景",
+    "c108b": "SIM 卡個人化：可修改每張 SIM 卡的顯示名稱（狀態欄卡名），支援一鍵還原預設",
+    "c108c": "三語支援：英文 / 简体中文 / 繁體中文，全部介面文字本地化",
+    "c108d": "快捷方案、國家碼列表、電訊商名稱等資料內容全部跟隨應用程式語言切換（中 / 英 / 繁）",
+    "c108e": "首次進入（Shizuku 授權後）進入語言設定介面，自動匹配手機系統語言並高亮，可隨時在個人化頁切換",
+    "c107a": "修復：還原後仍顯示舊覆蓋電訊商名（如 3HK / au by KDDI）的問題",
+    "c107b": "電訊商名稱改為基於 SIM 真實 MCC/MNC 自動識別（經 Shizuku 直讀，46015=中國廣電、46002=中國移動等）",
+    "c104a": "檢查更新改用國內伺服器介面，檢查更快更穩（GitHub 自動兜底）",
+    "c102a": "修復：配置已還原後仍顯示「已覆蓋」的誤判，改為讀取系統真實狀態",
+    "c102b": "修復：報錯後執行日誌為空的問題，所有操作錯誤均寫入日誌",
+    "c102c": "新增：日誌一鍵複製、匯出為檔案",
+    "c102d": "還原 / 儲存後頁面自動刷新，不再殘留舊資料",
+    "c101a": "一鍵還原大幅提速：雙卡並行、去掉重複阻塞同步",
+    "c101b": "儲存 / 讀取速度優化：服務實例快取、逾時保護",
+    "c101c": "新增強制清除任務：操作卡住時可強制終止",
+    "c101d": "互動動效優化：頁面切換動畫、按鈕按壓回饋",
+    "sec_notice": "使用須知",
+    "n1": "需要已安裝並授權 <b>Shizuku</b>（免 root 授權方案）。",
+    "n2": "修改國家碼 / 電訊商覆蓋僅影響部分應用程式的地區判定邏輯，請按需使用。",
+    "n3": "本工具僅用於學習與技術研究，請勿用於違規用途。",
+    "n4": "開源專案：由 <b>KinsonStudio</b> 製作 · 基於 Nrfr 開源，遵循 Apache-2.0 授權。",
+    "ft1": "由",
+    "ft2": "製作 · 基於 Nrfr 開源",
+    "ft3": "GitHub 倉庫",
+    "ft4": "原始碼完全開源，歡迎 Star & 貢獻"
+  }
+};
+
+var LANG_KEY = "krfr_lang";
+function currentLang() {
+  var saved = "en";
+  try { saved = localStorage.getItem(LANG_KEY) || "en"; } catch (e) {}
+  return (I18N[saved] ? saved : "en");
+}
+function applyLang(lang) {
+  var dict = I18N[lang] || I18N.en;
+  var els = document.querySelectorAll("[data-i18n]");
+  for (var i = 0; i < els.length; i++) {
+    var key = els[i].getAttribute("data-i18n");
+    if (dict[key] !== undefined) els[i].innerHTML = dict[key];
+  }
+  document.documentElement.lang = lang;
+  document.title = lang === "en" ? "krfr · SIM Card MCC/MNC & Carrier Config Tool"
+    : (lang === "zh-CN" ? "krfr · SIM 卡国家码与运营商配置工具" : "krfr · SIM 卡國家碼與電訊商配置工具");
+  var btns = document.querySelectorAll(".lang-btn");
+  for (var j = 0; j < btns.length; j++) {
+    btns[j].className = "lang-btn" + (btns[j].getAttribute("data-lang") === lang ? " active" : "");
+  }
+}
+function setLang(lang) {
+  try { localStorage.setItem(LANG_KEY, lang); } catch (e) {}
+  applyLang(lang);
+}
+applyLang(currentLang());
+</script>
 
 </body>
 </html>
