@@ -11,6 +11,8 @@ import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.ui.graphics.Brush
@@ -40,6 +42,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
@@ -97,14 +100,14 @@ fun MainScaffold(
         backgroundPath?.let { decodeSampledBitmap(it) }
     }
 
-    val bgBackdrop = rememberLayerBackdrop()
+    // 背景 + 页面内容一起录进 backdrop，Tab 栏玻璃折射的就是背后真实内容
+    val contentBackdrop = rememberLayerBackdrop()
 
     Box(modifier = Modifier.fillMaxSize()) {
-        // 背景层：静态流体光斑（只绘制一次），同时录成 backdrop 供 Tab 栏磨砂用
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .layerBackdrop(bgBackdrop)
+                .layerBackdrop(contentBackdrop)
         ) {
             LiquidGlassBackground(style = themeStyle, dark = darkBg)
             if (bgBitmap != null) {
@@ -123,23 +126,16 @@ fun MainScaffold(
                     )
                 }
             }
-        }
 
-        Scaffold(
-            modifier = Modifier.fillMaxSize(),
-            containerColor = Color.Transparent,
-            bottomBar = {
-                LiquidBottomBar(
-                    selected = selectedTab,
-                    onSelect = { selectedTab = it },
-                    backdrop = bgBackdrop
-                )
-            }
-        ) { innerPadding ->
+            Scaffold(
+                modifier = Modifier.fillMaxSize(),
+                containerColor = Color.Transparent
+            ) { innerPadding ->
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(innerPadding)
+                    .padding(bottom = 84.dp)
             ) {
                 // 顶部横向柔光：增强玻璃光泽层次（静态，零成本）
                 Box(
@@ -190,19 +186,30 @@ fun MainScaffold(
                     }
                 }
             }
+            }
         }
+
+        // 悬浮玻璃 Tab 栏：覆盖在内容之上，折射滚动内容
+        LiquidBottomBar(
+            selected = selectedTab,
+            onSelect = { selectedTab = it },
+            backdrop = contentBackdrop,
+            modifier = Modifier.align(Alignment.BottomCenter)
+        )
     }
 }
 
-/** 背景图采样解码：限制到 ~1080px 宽，避免大图 OOM */
-private fun decodeSampledBitmap(path: String): android.graphics.Bitmap? {
-    return runCatching {
-        val opts = android.graphics.BitmapFactory.Options().apply { inJustDecodeBounds = true }
-        android.graphics.BitmapFactory.decodeFile(path, opts)
-        val target = 1080
+/** 按目标尺寸采样解码背景图，避免大图 OOM */
+private fun decodeSampledBitmap(path: String, reqSize: Int = 1080): Bitmap? {
+    return try {
+        val opts = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        BitmapFactory.decodeFile(path, opts)
         var sample = 1
-        while (opts.outWidth / sample > target * 2) sample *= 2
-        val decodeOpts = android.graphics.BitmapFactory.Options().apply { inSampleSize = sample }
-        android.graphics.BitmapFactory.decodeFile(path, decodeOpts)
-    }.getOrNull()
+        while (opts.outWidth / sample > reqSize || opts.outHeight / sample > reqSize) {
+            sample *= 2
+        }
+        BitmapFactory.decodeFile(path, BitmapFactory.Options().apply { inSampleSize = sample })
+    } catch (t: Throwable) {
+        null
+    }
 }
