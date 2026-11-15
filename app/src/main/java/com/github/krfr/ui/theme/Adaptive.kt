@@ -33,6 +33,14 @@ object KrfrAdaptive {
         }
     }
 
+    /** 坐在 onSurface 实心色块上的前景色（玻璃主题下 surface 带 alpha，不能直接拿来当文字色） */
+    @Composable
+    fun onInk(): Color = if (MaterialTheme.colorScheme.surface.luminance() < 0.5f) {
+        Color(0xFF0C121B)
+    } else {
+        Color.White
+    }
+
     @Composable
     fun codeAccent(): Color = MaterialTheme.colorScheme.tertiary
 

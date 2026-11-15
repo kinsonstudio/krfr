@@ -43,6 +43,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import com.github.krfr.ui.theme.uiBottomInset
+import com.github.krfr.ui.glass.GlassSurface
 
 /** 快捷方案页：选定 SIM 后一键应用常用「国家码+运营商」组合 */
 @Composable
@@ -129,7 +131,7 @@ fun QuickPresetScreen() {
     Box(modifier = Modifier.fillMaxSize()) {
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 96.dp)
+            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = uiBottomInset(96.dp))
         ) {
             item {
                 PageHeader(
@@ -146,7 +148,7 @@ fun QuickPresetScreen() {
 
             if (isLoading && simCards.isEmpty()) {
                 item {
-                    Surface(
+                    GlassSurface(
                         modifier = Modifier.fillMaxWidth(),
                         shape = KrfrCardShape,
                         color = MaterialTheme.colorScheme.surface,
@@ -164,7 +166,7 @@ fun QuickPresetScreen() {
                 }
             } else if (errorMessage != null && simCards.isEmpty()) {
                 item {
-                    Surface(
+                    GlassSurface(
                         modifier = Modifier.fillMaxWidth(),
                         shape = KrfrCardShape,
                         color = MaterialTheme.colorScheme.surface,
@@ -222,9 +224,8 @@ fun QuickPresetScreen() {
             onDismiss = { statusMessage = null },
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .navigationBarsPadding()
                 .padding(horizontal = 24.dp)
-                .padding(bottom = 78.dp)
+                .padding(bottom = uiBottomInset(96.dp, 24.dp))
         )
     }
 }
@@ -285,7 +286,7 @@ private fun QuickPresetRow(
     onClick: () -> Unit
 ) {
     val lang = LanguageManager.currentLang(LocalContext.current)
-    Surface(
+    GlassSurface(
         modifier = Modifier.fillMaxWidth(),
         shape = KrfrCardShape,
         color = MaterialTheme.colorScheme.surface,

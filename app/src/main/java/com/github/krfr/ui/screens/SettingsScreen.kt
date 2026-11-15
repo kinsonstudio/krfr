@@ -56,6 +56,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import com.github.krfr.ui.theme.uiBottomInset
+import com.github.krfr.ui.glass.GlassSurface
 
 /** 设置页：配置备份/恢复、日志维护、关于与检查更新 */
 @Composable
@@ -149,7 +151,7 @@ fun SettingsScreen(
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 16.dp)
-                .padding(bottom = 96.dp)
+                .padding(bottom = uiBottomInset(96.dp))
         ) {
             PageHeader(
                 title = stringResource(R.string.settings_title),
@@ -158,7 +160,7 @@ fun SettingsScreen(
             )
 
             SectionLabel(stringResource(R.string.sec_config_data))
-            Surface(
+            GlassSurface(
                 modifier = Modifier.fillMaxWidth(),
                 shape = KrfrCardShape,
                 color = MaterialTheme.colorScheme.surface,
@@ -188,7 +190,7 @@ fun SettingsScreen(
             }
 
             SectionLabel(stringResource(R.string.sec_maintenance))
-            Surface(
+            GlassSurface(
                 modifier = Modifier.fillMaxWidth(),
                 shape = KrfrCardShape,
                 color = MaterialTheme.colorScheme.surface,
@@ -247,7 +249,7 @@ fun SettingsScreen(
             }
 
             SectionLabel(stringResource(R.string.sec_about))
-            Surface(
+            GlassSurface(
                 modifier = Modifier.fillMaxWidth(),
                 shape = KrfrCardShape,
                 color = MaterialTheme.colorScheme.surface,
@@ -353,9 +355,8 @@ fun SettingsScreen(
             onDismiss = { statusMessage = null },
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .navigationBarsPadding()
                 .padding(horizontal = 24.dp)
-                .padding(bottom = 78.dp)
+                .padding(bottom = uiBottomInset(96.dp, 24.dp))
         )
     }
 

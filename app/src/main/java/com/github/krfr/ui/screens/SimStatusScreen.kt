@@ -31,6 +31,8 @@ import com.github.krfr.ui.theme.KrfrCardShape
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import com.github.krfr.ui.theme.uiBottomInset
+import com.github.krfr.ui.glass.GlassSurface
 
 @Composable
 fun SimStatusScreen() {
@@ -72,7 +74,7 @@ fun SimStatusScreen() {
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 16.dp)
-            .padding(bottom = 24.dp)
+            .padding(bottom = uiBottomInset(120.dp))
     ) {
         PageHeader(
             title = stringResource(R.string.status_title),
@@ -83,7 +85,7 @@ fun SimStatusScreen() {
 
         when {
             errorMessage != null && statuses.isEmpty() -> {
-                Surface(
+                GlassSurface(
                     modifier = Modifier.fillMaxWidth(),
                     shape = KrfrCardShape,
                     color = MaterialTheme.colorScheme.surface,
@@ -100,7 +102,7 @@ fun SimStatusScreen() {
                 }
             }
             statuses.isEmpty() && !isLoading -> {
-                Surface(
+                GlassSurface(
                     modifier = Modifier.fillMaxWidth(),
                     shape = KrfrCardShape,
                     color = MaterialTheme.colorScheme.surface,
@@ -154,7 +156,7 @@ private fun SimStatusCard(status: SimStatusInfo) {
         MaterialTheme.colorScheme.onSurface
     }
 
-    Surface(
+    GlassSurface(
         modifier = Modifier.fillMaxWidth(),
         shape = KrfrCardShape,
         color = MaterialTheme.colorScheme.surface,

@@ -167,7 +167,12 @@
     <string name="status_title">SIM Status</string>
     <string name="stop_cd">Stop</string>
     <string name="style_ocean_blue">Ocean Blue</string>
-    <string name="style_paper_green">Paper Green</string>
+    <string name="style_paper_green">Classic Blue</string>
+    <string name="ui_style_title">Interface Style</string>
+    <string name="ui_style_desc">Choose liquid glass or the native interface</string>
+    <string name="ui_style_liquid">Liquid Glass</string>
+    <string name="ui_style_native">Native</string>
+    <string name="badge_new">New</string>
     <string name="style_rose_pink">Rose Pink</string>
     <string name="style_sunset_orange">Sunset Orange</string>
     <string name="tab_config">Config</string>

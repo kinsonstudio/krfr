@@ -3,6 +3,7 @@ package com.github.krfr.data
 import android.content.Context
 import com.github.krfr.ui.theme.ThemeMode
 import com.github.krfr.ui.theme.ThemeStyle
+import com.github.krfr.ui.theme.UiStyle
 
 /** 应用设置的持久化存储 */
 object SettingsStore {
@@ -10,6 +11,7 @@ object SettingsStore {
     private const val KEY_THEME_MODE = "theme_mode"
     private const val KEY_THEME_STYLE = "theme_style"
     private const val KEY_BACKGROUND_PATH = "background_path"
+    private const val KEY_UI_STYLE = "ui_style"
 
     fun readThemeMode(context: Context): ThemeMode {
         val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
@@ -36,6 +38,21 @@ object SettingsStore {
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
             .edit()
             .putString(KEY_THEME_STYLE, style.name)
+            .apply()
+    }
+
+    /** 界面风格：液态玻璃（默认）/ 原生 */
+    fun readUiStyle(context: Context): UiStyle {
+        val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        return runCatching {
+            UiStyle.valueOf(prefs.getString(KEY_UI_STYLE, UiStyle.LIQUID_GLASS.name)!!)
+        }.getOrDefault(UiStyle.LIQUID_GLASS)
+    }
+
+    fun writeUiStyle(context: Context, style: UiStyle) {
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .edit()
+            .putString(KEY_UI_STYLE, style.name)
             .apply()
     }
 

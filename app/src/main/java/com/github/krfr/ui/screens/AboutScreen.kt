@@ -28,6 +28,7 @@ import com.github.krfr.ui.theme.KrfrAdaptive
 import com.github.krfr.R
 import com.github.krfr.ui.theme.KrfrCardShape
 import com.github.krfr.ui.theme.clickableNoIndication
+import com.github.krfr.ui.glass.GlassSurface
 
 private const val SHIZUKU_REPO = "https://github.com/RikkaApps/Shizuku"
 private const val KRF_HOME = "https://github.com/kinsonstudio/krfr"
@@ -83,7 +84,7 @@ fun AboutScreen(onBack: () -> Unit) {
                 .padding(horizontal = 16.dp)
                 .padding(bottom = 20.dp)
         ) {
-            Surface(
+            GlassSurface(
                 modifier = Modifier.fillMaxWidth(),
                 shape = KrfrCardShape,
                 color = MaterialTheme.colorScheme.surface,
@@ -166,7 +167,7 @@ fun AboutScreen(onBack: () -> Unit) {
 
 @Composable
 private fun AboutCard(title: String, content: @Composable ColumnScope.() -> Unit) {
-    Surface(
+    GlassSurface(
         modifier = Modifier.fillMaxWidth(),
         shape = KrfrCardShape,
         color = MaterialTheme.colorScheme.surface,

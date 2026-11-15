@@ -2,6 +2,11 @@ package com.github.krfr.ui.components
 import androidx.compose.ui.res.stringResource
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.material.icons.rounded.ErrorOutline
+import androidx.compose.material.icons.rounded.CheckCircle
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -44,9 +49,8 @@ import androidx.compose.ui.unit.sp
 import com.github.krfr.ui.theme.KrfrAdaptive
 import com.github.krfr.R
 import com.github.krfr.ui.theme.KrfrCardShape
-import com.github.krfr.ui.theme.glassSheen
 import com.github.krfr.ui.theme.isDarkSurface
-import com.github.krfr.ui.theme.liquidGlassPanel
+import com.github.krfr.ui.glass.realGlass
 import com.github.krfr.ui.theme.KrfrPill
 import kotlinx.coroutines.launch
 import com.github.krfr.ui.theme.clickableNoIndication
@@ -63,8 +67,13 @@ fun PageHeader(
         modifier = Modifier
             .fillMaxWidth()
             .padding(top = 12.dp, bottom = 16.dp)
-            .liquidGlassPanel(KrfrCardShape, dark = isDarkSurface(), strong = true)
-            .glassSheen(KrfrCardShape, dark = isDarkSurface())
+            .realGlass(
+                shape = KrfrCardShape,
+                strong = true,
+                blurRadius = 14.dp,
+                lensRadius = 12.dp,
+                elevated = true
+            )
     ) {
         Row(
             modifier = Modifier
@@ -217,7 +226,7 @@ fun DetailGrid(items: List<Pair<String, Pair<String, Color>>>) {
     }
 }
 
-// 底部操作结果横幅，2.8s 自动消失，点击立即关闭
+// 底部操作结果横幅：玻璃胶囊 + 图标，2.8s 自动消失，点击立即关闭
 @Composable
 fun SoftStatusBanner(
     message: String?,
@@ -228,43 +237,51 @@ fun SoftStatusBanner(
     AnimatedVisibility(
         visible = !message.isNullOrBlank(),
         modifier = modifier,
-        enter = fadeIn() + slideInVertically { it / 3 },
-        exit = fadeOut() + slideOutVertically { it / 3 }
+        enter = fadeIn(tween(200)) +
+            slideInVertically(spring(dampingRatio = 0.7f, stiffness = 380f)) { it / 2 } +
+            scaleIn(initialScale = 0.94f, animationSpec = spring(dampingRatio = 0.7f, stiffness = 380f)),
+        exit = fadeOut(tween(140)) +
+            slideOutVertically(tween(160)) { it / 3 } +
+            scaleOut(targetScale = 0.96f, animationSpec = tween(160))
     ) {
         if (message.isNullOrBlank()) return@AnimatedVisibility
-        val accent = if (isError) MaterialTheme.colorScheme.error else KrfrAdaptive.link()
-        val container = if (isError) {
-            MaterialTheme.colorScheme.errorContainer
-        } else {
-            KrfrAdaptive.okBg()
-        }
-        Surface(
-            shape = KrfrPill,
-            color = container,
-            tonalElevation = 0.dp,
-            shadowElevation = 4.dp,
-            border = BorderStroke(1.dp, accent.copy(alpha = 0.18f)),
-            modifier = Modifier.clickableNoIndication(onClick = onDismiss)
+        val accent = if (isError) MaterialTheme.colorScheme.error else KrfrOkGreen
+        val shape = KrfrPill
+        Box(
+            modifier = Modifier
+                .realGlass(
+                    shape = shape,
+                    tint = MaterialTheme.colorScheme.surface,
+                    strong = true,
+                    blurRadius = 14.dp,
+                    lensRadius = 10.dp,
+                    elevated = true
+                )
+                .clickableNoIndication(onClick = onDismiss)
+                .padding(start = 9.dp, end = 16.dp, top = 8.dp, bottom = 8.dp)
         ) {
             Row(
-                modifier = Modifier.padding(horizontal = 18.dp, vertical = 11.dp),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(9.dp)
             ) {
                 Box(
                     modifier = Modifier
-                        .size(7.dp)
+                        .size(24.dp)
                         .clip(CircleShape)
-                        .background(accent)
-                )
+                        .background(accent.copy(alpha = 0.16f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = if (isError) Icons.Rounded.ErrorOutline else Icons.Rounded.CheckCircle,
+                        contentDescription = null,
+                        tint = accent,
+                        modifier = Modifier.size(16.dp)
+                    )
+                }
                 Text(
                     text = message,
                     style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold),
-                    color = if (isError) {
-                        MaterialTheme.colorScheme.error
-                    } else {
-                        MaterialTheme.colorScheme.onSurface
-                    },
+                    color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -272,3 +289,5 @@ fun SoftStatusBanner(
         }
     }
 }
+
+private val KrfrOkGreen = Color(0xFF1E9E5A)

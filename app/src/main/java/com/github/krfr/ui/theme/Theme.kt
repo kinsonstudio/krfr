@@ -5,6 +5,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.graphics.Color
 
 /** 应用内明暗模式：跟随系统 / 浅色 / 深色 */
@@ -232,6 +233,7 @@ private fun buildDarkScheme(style: ThemeStyle) = when (style) {
 fun KrfrTheme(
     themeMode: ThemeMode = ThemeMode.SYSTEM,
     themeStyle: ThemeStyle = ThemeStyle.PAPER_GREEN,
+    uiStyle: UiStyle = UiStyle.LIQUID_GLASS,
     content: @Composable () -> Unit
 ) {
     val darkTheme = when (themeMode) {
@@ -240,18 +242,30 @@ fun KrfrTheme(
         ThemeMode.DARK -> true
     }
     val baseScheme = if (darkTheme) buildDarkScheme(themeStyle) else buildLightScheme(themeStyle)
-    // 液态玻璃：表面半透明，让底层光斑透出；页面背景透明
-    val colorScheme = baseScheme.copy(
-        background = Color.Transparent,
-        surface = baseScheme.surface.copy(alpha = if (darkTheme) 0.56f else 0.74f),
-        surfaceVariant = baseScheme.surfaceVariant.copy(alpha = if (darkTheme) 0.42f else 0.54f),
-        outline = if (darkTheme) Color.White.copy(alpha = 0.22f) else Color.White.copy(alpha = 0.78f),
-        outlineVariant = if (darkTheme) Color.White.copy(alpha = 0.14f) else Color.White.copy(alpha = 0.62f)
-    )
-    MaterialTheme(
-        colorScheme = colorScheme,
-        typography = KrfrTypography,
-        shapes = KrfrShapes,
-        content = content
-    )
+    // 液态玻璃：表面半透明，让底层光斑透出；原生风格：标准不透明配色
+    val colorScheme = if (uiStyle == UiStyle.LIQUID_GLASS) {
+        baseScheme.copy(
+            background = Color.Transparent,
+            surface = baseScheme.surface.copy(alpha = if (darkTheme) 0.34f else 0.38f),
+            surfaceVariant = baseScheme.surfaceVariant.copy(alpha = if (darkTheme) 0.26f else 0.30f),
+            outline = if (darkTheme) Color.White.copy(alpha = 0.22f) else Color.White.copy(alpha = 0.78f),
+            outlineVariant = if (darkTheme) Color.White.copy(alpha = 0.14f) else Color.White.copy(alpha = 0.62f)
+        )
+    } else {
+        baseScheme.copy(
+            background = baseScheme.background,
+            surface = baseScheme.surface,
+            surfaceVariant = baseScheme.surfaceVariant,
+            outline = if (darkTheme) baseScheme.outline else Color(0xFFCBD8E8),
+            outlineVariant = if (darkTheme) baseScheme.outlineVariant else Color(0xFFDCE5F0)
+        )
+    }
+    CompositionLocalProvider(LocalUiStyle provides uiStyle) {
+        MaterialTheme(
+            colorScheme = colorScheme,
+            typography = KrfrTypography,
+            shapes = KrfrShapes,
+            content = content
+        )
+    }
 }

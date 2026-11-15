@@ -167,7 +167,12 @@
     <string name="status_title">SIM 狀態</string>
     <string name="stop_cd">終止</string>
     <string name="style_ocean_blue">海藍</string>
-    <string name="style_paper_green">紙感墨綠</string>
+    <string name="style_paper_green">經典藍</string>
+    <string name="ui_style_title">介面風格</string>
+    <string name="ui_style_desc">選擇液態玻璃或原生介面</string>
+    <string name="ui_style_liquid">液態玻璃</string>
+    <string name="ui_style_native">原生風格</string>
+    <string name="badge_new">New</string>
     <string name="style_rose_pink">玫紅</string>
     <string name="style_sunset_orange">暖橙</string>
     <string name="tab_config">配置</string>

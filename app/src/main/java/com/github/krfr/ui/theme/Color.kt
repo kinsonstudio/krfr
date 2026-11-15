@@ -2,37 +2,37 @@ package com.github.krfr.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// Krfr 色板：米白纸感背景 + 墨绿主色 + 沙金点缀；深色用暖墨底 + 薄荷亮绿。
-val KrfrInk = Color(0xFF1E2A25)          // 主文字（暖墨）
-val KrfrInkSoft = Color(0xFF3D4F48)      // 次级文字
-val KrfrMute = Color(0xFF6A7D74)         // 弱化文字
-val KrfrMute2 = Color(0xFF9AAB9F)        // 更弱化文字
-val KrfrLine = Color(0xFFE7DFD3)         // 分隔线 / 描边（暖灰）
-val KrfrLineStrong = Color(0xFFD5CBB9)
-val KrfrBg = Color(0xFFF8F4ED)           // 页面背景（米白纸感）
-val KrfrSurface = Color(0xFFFFFDF9)      // 卡片背景（奶白）
-val KrfrSurface2 = Color(0xFFFFFFFF)     // 纯白
-val KrfrWash = Color(0xFFEFE9DE)         // 填充底色（浅暖沙）
+// Krfr 色板（2.1 苹果蓝）：冷白偏蓝的底 + iOS 蓝主色，深色为近黑蓝底 + 亮蓝点缀。
+val KrfrInk = Color(0xFF0B1220)          // 主文字
+val KrfrInkSoft = Color(0xFF2A3A50)      // 次级文字
+val KrfrMute = Color(0xFF5B6B80)         // 弱化文字
+val KrfrMute2 = Color(0xFF8A99AC)        // 更弱化文字
+val KrfrLine = Color(0xFFDCE5F0)         // 分隔线 / 描边
+val KrfrLineStrong = Color(0xFFC5D3E4)
+val KrfrBg = Color(0xFFF2F6FC)           // 页面背景（冷白）
+val KrfrSurface = Color(0xFFFFFFFF)      // 卡片背景
+val KrfrSurface2 = Color(0xFFFFFFFF)
+val KrfrWash = Color(0xFFE8EFF9)         // 填充底色
 
 
-val KrfrLink = Color(0xFF2F6B5E)         // 主色：墨绿
-val KrfrLinkSoft = Color(0xFFE0EDE6)     // 主色浅底（薄荷浅）
-val KrfrCodeAccent = Color(0xFF8A7A3C)   // 代码/数据高亮（沙金）
-val KrfrVioletSoft = Color(0xFFF0E9D8)
-val KrfrCodeBg = Color(0xFF232C28)
-val KrfrCodeFg = Color(0xFFEDF5F0)
-val KrfrCodeWarn = Color(0xFFBFE3D2)
+val KrfrLink = Color(0xFF0A7AFF)         // 主色：iOS 蓝
+val KrfrLinkSoft = Color(0xFFDCEBFF)     // 主色浅底
+val KrfrCodeAccent = Color(0xFF5E5CE6)   // 数据 / 链接高亮（靛蓝）
+val KrfrVioletSoft = Color(0xFFE9E8FF)
+val KrfrCodeBg = Color(0xFF0F1A2B)
+val KrfrCodeFg = Color(0xFFE8F1FB)
+val KrfrCodeWarn = Color(0xFFBBD8FF)
 
-val KrfrSuccess = Color(0xFF3E9B6E)      // 成功绿
-val KrfrOkBg = Color(0xFFE2F2E9)
-val KrfrError = Color(0xFFC93E3E)
-val KrfrErrorContainer = Color(0xFFFBE9E9)
+val KrfrSuccess = Color(0xFF34C759)      // 成功绿（系统色）
+val KrfrOkBg = Color(0xFFE3F7E9)
+val KrfrError = Color(0xFFE5484D)
+val KrfrErrorContainer = Color(0xFFFFE9E9)
 
 
 val KrfrPrimary = KrfrLink
 val KrfrOnPrimary = Color.White
 val KrfrPrimaryContainer = KrfrLinkSoft
-val KrfrOnPrimaryContainer = Color(0xFF0E3A30)
+val KrfrOnPrimaryContainer = Color(0xFF06305E)
 val KrfrSecondary = KrfrMute
 val KrfrOnSecondary = Color.White
 val KrfrSecondaryContainer = KrfrWash
@@ -45,20 +45,20 @@ val KrfrOutline = KrfrLine
 val KrfrOutlineVariant = KrfrLine
 
 
-val DarkPrimary = Color(0xFF7FD6B8)
-val DarkOnPrimary = Color(0xFF0B3A2D)
-val DarkPrimaryContainer = Color(0xFF21503F)
-val DarkOnPrimaryContainer = Color(0xFFC2ECDC)
-val DarkBackground = Color(0xFF111613)
-val DarkSurface = Color(0xFF1A211D)
-val DarkSurfaceVariant = Color(0xFF283129)
-val DarkOnSurface = Color(0xFFE4EDE7)
-val DarkOnSurfaceVariant = Color(0xFFB0BEB4)
-val DarkOutline = Color(0xFF43504A)
-val DarkLink = Color(0xFF7FD6B8)
-val DarkSuccess = Color(0xFF6ED6A4)
-val DarkError = Color(0xFFFFB4A9)
-val DarkErrorContainer = Color(0xFF5C2E2A)
+val DarkPrimary = Color(0xFF0A84FF)
+val DarkOnPrimary = Color(0xFF00264D)
+val DarkPrimaryContainer = Color(0xFF123A63)
+val DarkOnPrimaryContainer = Color(0xFFCFE4FF)
+val DarkBackground = Color(0xFF070A0F)
+val DarkSurface = Color(0xFF121821)
+val DarkSurfaceVariant = Color(0xFF1E2733)
+val DarkOnSurface = Color(0xFFE9EFF7)
+val DarkOnSurfaceVariant = Color(0xFFA5B4C6)
+val DarkOutline = Color(0xFF3B4756)
+val DarkLink = Color(0xFF4FA8FF)
+val DarkSuccess = Color(0xFF30D158)
+val DarkError = Color(0xFFFF6961)
+val DarkErrorContainer = Color(0xFF4A1F1C)
 
 // ============ 可选配色：海蓝 OCEAN ============
 val OceanLink = Color(0xFF2E5D8A)

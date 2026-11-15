@@ -66,6 +66,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import com.github.krfr.ui.glass.GlassSurface
+import com.github.krfr.ui.glass.glassButton
+import com.github.krfr.ui.theme.uiBottomInset
+import com.github.krfr.ui.theme.isDarkSurface
 
 private data class SlotFormDraft(
     val countryCode: String,
@@ -206,7 +210,7 @@ fun ConfigScreen() {
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 16.dp)
-                .padding(bottom = 96.dp)
+                .padding(bottom = uiBottomInset(96.dp))
         ) {
             PageHeader(
                 title = "krfr",
@@ -340,17 +344,17 @@ fun ConfigScreen() {
             onDismiss = { statusMessage = null },
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .navigationBarsPadding()
                 .padding(horizontal = 24.dp)
-                .padding(bottom = 78.dp)
+                // 原生风格下按钮贴底，横幅要抬到按钮上方，不能只是 24dp
+                .padding(bottom = uiBottomInset(146.dp, 72.dp))
         )
 
         ActionButtons(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .fillMaxWidth()
-                .navigationBarsPadding()
-                .padding(horizontal = 20.dp, vertical = 10.dp),
+                .padding(horizontal = 20.dp)
+                .padding(top = 10.dp, bottom = uiBottomInset(84.dp, 12.dp)),
             effectiveSimCard = effectiveSimCard,
             selectedCountryCode = selectedCountryCode,
             isCustomCountryCode = isCustomCountryCode,
@@ -474,7 +478,7 @@ private fun SimCardSelector(
         ModalBottomSheet(
             onDismissRequest = { onExpandedChange(false) },
             sheetState = sheetState,
-            containerColor = MaterialTheme.colorScheme.surface,
+            containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f),
             shape = KrfrCardShape,
             tonalElevation = 0.dp
         ) {
@@ -508,7 +512,7 @@ private fun CurrentConfigsOverview(
     isLoading: Boolean,
     errorMessage: String?
 ) {
-    Surface(
+    GlassSurface(
         modifier = Modifier.fillMaxWidth(),
         shape = KrfrCardShape,
         color = MaterialTheme.colorScheme.surface,
@@ -625,7 +629,7 @@ private fun SimConfigSummary(simCard: SimCardInfo) {
                     fontFamily = FontFamily.Monospace,
                     fontWeight = FontWeight.SemiBold
                 ),
-                color = MaterialTheme.colorScheme.surface
+                color = KrfrAdaptive.onInk()
             )
         }
 
@@ -708,7 +712,7 @@ private fun CountryCodeSelector(
         ModalBottomSheet(
             onDismissRequest = { onExpandedChange(false) },
             sheetState = sheetState,
-            containerColor = MaterialTheme.colorScheme.surface,
+            containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f),
             shape = KrfrCardShape,
             tonalElevation = 0.dp
         ) {
@@ -800,7 +804,7 @@ private fun CarrierSelector(
         ModalBottomSheet(
             onDismissRequest = { onExpandedChange(false) },
             sheetState = sheetState,
-            containerColor = MaterialTheme.colorScheme.surface,
+            containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f),
             shape = KrfrCardShape,
             tonalElevation = 0.dp
         ) {
@@ -1047,7 +1051,7 @@ private fun ResetAllButton(
     isApplying: Boolean,
     onResetAll: () -> Unit
 ) {
-    Surface(
+    GlassSurface(
         modifier = Modifier
             .fillMaxWidth()
             .padding(top = 12.dp),
@@ -1126,12 +1130,16 @@ private fun ActionButtons(
             onClick = { effectiveSimCard?.let(onReset) },
             modifier = Modifier
                 .weight(1f)
-                .height(46.dp),
+                .height(46.dp)
+                .glassButton(
+                    fill = if (isDarkSurface()) Color.White.copy(alpha = 0.10f)
+                    else Color.White.copy(alpha = 0.30f)
+                ),
             enabled = !isApplyingConfig && effectiveSimCard != null,
             shape = KrfrPill,
             contentPadding = PaddingValues(horizontal = 10.dp, vertical = 0.dp),
             colors = ButtonDefaults.outlinedButtonColors(
-                containerColor = MaterialTheme.colorScheme.surface,
+                containerColor = Color.Transparent,
                 contentColor = MaterialTheme.colorScheme.onSurface,
                 disabledContainerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.7f),
                 disabledContentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f)
@@ -1152,7 +1160,8 @@ private fun ActionButtons(
             onClick = { effectiveSimCard?.let(onSave) },
             modifier = Modifier
                 .weight(1f)
-                .height(46.dp),
+                .height(46.dp)
+                .glassButton(fill = KrfrAdaptive.link().copy(alpha = if (isDarkSurface()) 0.42f else 0.34f)),
             enabled = !isApplyingConfig && effectiveSimCard != null && (
                 (isCustomCountryCode && customCountryCode.length == 2) ||
                     (!isCustomCountryCode && selectedCountryCode.isNotEmpty()) ||
@@ -1162,7 +1171,7 @@ private fun ActionButtons(
             shape = KrfrPill,
             contentPadding = PaddingValues(horizontal = 10.dp, vertical = 0.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = KrfrAdaptive.link(),
+                containerColor = Color.Transparent,
                 contentColor = KrfrAdaptive.onLink(),
                 disabledContainerColor = MaterialTheme.colorScheme.outlineVariant,
                 disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant

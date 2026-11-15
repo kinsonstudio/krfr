@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.sp
 import com.github.krfr.ui.theme.KrfrAdaptive
 import com.github.krfr.ui.theme.KrfrCardShape
 import com.github.krfr.ui.theme.KrfrPill
+import com.github.krfr.ui.glass.GlassSurface
 
 /**
  * 首次启动语言选择页：请求 Shizuku 权限后展示。
@@ -114,7 +115,7 @@ private fun LanguageOption(
     selected: Boolean,
     onClick: () -> Unit
 ) {
-    Surface(
+    GlassSurface(
         modifier = Modifier.fillMaxWidth(),
         shape = KrfrCardShape,
         color = if (selected) KrfrAdaptive.linkSoft() else MaterialTheme.colorScheme.surface,

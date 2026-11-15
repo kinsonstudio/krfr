@@ -7,6 +7,12 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.layout.Box
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
+import androidx.compose.ui.draw.alpha
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -25,10 +31,12 @@ import com.github.krfr.ui.screens.resolveShizukuBlockReason
 import com.github.krfr.ui.theme.KrfrTheme
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Modifier
-import com.github.krfr.ui.theme.LiquidGlassBackground
 import com.github.krfr.ui.theme.isDarkSurface
+import com.github.krfr.ui.theme.ThemeTransition
+import com.github.krfr.ui.glass.GlassScene
 import com.github.krfr.ui.theme.ThemeMode
 import com.github.krfr.ui.theme.ThemeStyle
+import com.github.krfr.ui.theme.UiStyle
 import org.lsposed.hiddenapibypass.HiddenApiBypass
 import rikka.shizuku.Shizuku
 
@@ -38,6 +46,9 @@ class MainActivity : ComponentActivity() {
     private var showAbout by mutableStateOf(false)
     private var themeMode by mutableStateOf(ThemeMode.SYSTEM)
     private var themeStyle by mutableStateOf(ThemeStyle.PAPER_GREEN)
+    private var uiStyle by mutableStateOf(UiStyle.LIQUID_GLASS)
+    /** 语言切换：先淡出再 recreate，避免整屏硬切 */
+    private var pendingLang by mutableStateOf<String?>(null)
     private var backgroundPath by mutableStateOf<String?>(null)
     private var appLang by mutableStateOf<String?>(null)
     private var autoPermissionRequestAttempted = false
@@ -82,6 +93,7 @@ class MainActivity : ComponentActivity() {
 
         themeMode = SettingsStore.readThemeMode(this)
         themeStyle = SettingsStore.readThemeStyle(this)
+        uiStyle = SettingsStore.readUiStyle(this)
         backgroundPath = SettingsStore.readBackgroundPath(this)
         appLang = LanguageManager.readLanguage(this)
         LanguageManager.initApp(this)
@@ -98,56 +110,70 @@ class MainActivity : ComponentActivity() {
         triggerSyncWhenShizukuReady()
 
         setContent {
-            KrfrTheme(themeMode = themeMode, themeStyle = themeStyle) {
+            KrfrTheme(themeMode = themeMode, themeStyle = themeStyle, uiStyle = uiStyle) {
                 val darkSurface = isDarkSurface()
-                if (showAbout || !isShizukuReady || appLang == null) {
-                    androidx.compose.foundation.layout.Box(
-                        modifier = Modifier.fillMaxSize()
-                    ) {
-                        LiquidGlassBackground(style = themeStyle, dark = darkSurface)
-                    }
+                val contentAlpha = remember { Animatable(0.25f) }
+                LaunchedEffect(Unit) {
+                    contentAlpha.animateTo(1f, tween(240))
                 }
-                if (showAbout) {
-                    AboutScreen(onBack = { showAbout = false })
-                } else if (!isShizukuReady) {
-                    ShizukuNotReadyScreen(
-                        reason = shizukuBlockReason,
-                        onRequestPermission = { requestShizukuPermission() }
-                    )
-                } else if (appLang == null) {
-                    LanguageSetupScreen(
-                        initialLang = LanguageManager.systemDefaultLang(this),
-                        onSelected = { lang ->
-                            appLang = lang
-                            LanguageManager.writeLanguage(this, lang)
-                            recreate()
+                LaunchedEffect(pendingLang) {
+                    val lang = pendingLang ?: return@LaunchedEffect
+                    contentAlpha.animateTo(0f, tween(170))
+                    LanguageManager.writeLanguage(this@MainActivity, lang)
+                    recreate()
+                }
+                ThemeTransition(
+                    themeKey = "$themeMode|$themeStyle",
+                    dark = darkSurface
+                ) {
+                Box(modifier = Modifier.alpha(contentAlpha.value)) {
+                if (showAbout || !isShizukuReady || appLang == null) {
+                    // 独立页面：铺一层可被玻璃采样的场景背景
+                    GlassScene(
+                        style = themeStyle,
+                        dark = darkSurface,
+                        backgroundPath = backgroundPath
+                    ) {
+                        when {
+                            showAbout -> AboutScreen(onBack = { showAbout = false })
+                            !isShizukuReady -> ShizukuNotReadyScreen(
+                                reason = shizukuBlockReason,
+                                onRequestPermission = { requestShizukuPermission() }
+                            )
+                            else -> LanguageSetupScreen(
+                                initialLang = LanguageManager.systemDefaultLang(this@MainActivity),
+                                onSelected = { lang -> pendingLang = lang }
+                            )
                         }
-                    )
+                    }
                 } else {
                     MainScaffold(
                         themeMode = themeMode,
                         onThemeModeChange = { mode ->
                             themeMode = mode
-                            SettingsStore.writeThemeMode(this, mode)
+                            SettingsStore.writeThemeMode(this@MainActivity, mode)
                         },
                         themeStyle = themeStyle,
                         onThemeStyleChange = { style ->
                             themeStyle = style
-                            SettingsStore.writeThemeStyle(this, style)
+                            SettingsStore.writeThemeStyle(this@MainActivity, style)
+                        },
+                        uiStyle = uiStyle,
+                        onUiStyleChange = { style ->
+                            uiStyle = style
+                            SettingsStore.writeUiStyle(this@MainActivity, style)
                         },
                         backgroundPath = backgroundPath,
                         onBackgroundPathChange = { path ->
                             backgroundPath = path
-                            SettingsStore.writeBackgroundPath(this, path)
+                            SettingsStore.writeBackgroundPath(this@MainActivity, path)
                         },
                         appLang = appLang,
-                        onLangChange = { lang ->
-                            appLang = lang
-                            LanguageManager.writeLanguage(this, lang)
-                            recreate()
-                        },
+                        onLangChange = { lang -> pendingLang = lang },
                         onShowAbout = { showAbout = true }
                     )
+                }
+                }
                 }
             }
         }

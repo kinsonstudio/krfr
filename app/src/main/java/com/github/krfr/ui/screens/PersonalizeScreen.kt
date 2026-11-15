@@ -4,12 +4,27 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.CheckCircle
+import androidx.compose.material3.Icon
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.unit.sp
+import com.github.krfr.ui.theme.UiStyle
+import com.github.krfr.ui.theme.isDarkSurface
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
@@ -52,6 +67,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
+import com.github.krfr.ui.theme.uiBottomInset
+import com.github.krfr.ui.glass.GlassSurface
 
 /** 个性化页：软件外观（语言/配色/明暗/背景图）+ SIM 卡个性化（显示名） */
 @Composable
@@ -60,6 +77,8 @@ fun PersonalizeScreen(
     onThemeModeChange: (ThemeMode) -> Unit,
     themeStyle: ThemeStyle,
     onThemeStyleChange: (ThemeStyle) -> Unit,
+    uiStyle: UiStyle,
+    onUiStyleChange: (UiStyle) -> Unit,
     backgroundPath: String?,
     onBackgroundPathChange: (String?) -> Unit,
     appLang: String?,
@@ -147,7 +166,7 @@ fun PersonalizeScreen(
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 16.dp)
-                .padding(bottom = 96.dp)
+                .padding(bottom = uiBottomInset(96.dp))
         ) {
             PageHeader(
                 title = stringResource(R.string.personalize_title),
@@ -159,8 +178,12 @@ fun PersonalizeScreen(
             // ============ 软件外观 ============
             SectionLabel(stringResource(R.string.sec_app_style))
 
+            // 界面风格：液态玻璃（默认，New）/ 原生
+            UiStyleCard(selected = uiStyle, onSelect = onUiStyleChange)
+            Spacer(modifier = Modifier.height(10.dp))
+
             // 语言
-            Surface(
+            GlassSurface(
                 modifier = Modifier.fillMaxWidth(),
                 shape = KrfrCardShape,
                 color = MaterialTheme.colorScheme.surface,
@@ -203,7 +226,7 @@ fun PersonalizeScreen(
             Spacer(modifier = Modifier.height(10.dp))
 
             // 配色风格
-            Surface(
+            GlassSurface(
                 modifier = Modifier.fillMaxWidth(),
                 shape = KrfrCardShape,
                 color = MaterialTheme.colorScheme.surface,
@@ -271,7 +294,7 @@ fun PersonalizeScreen(
             Spacer(modifier = Modifier.height(10.dp))
 
             // 明暗模式
-            Surface(
+            GlassSurface(
                 modifier = Modifier.fillMaxWidth(),
                 shape = KrfrCardShape,
                 color = MaterialTheme.colorScheme.surface,
@@ -303,13 +326,14 @@ fun PersonalizeScreen(
             Spacer(modifier = Modifier.height(10.dp))
 
             // 背景图
-            Surface(
+            GlassSurface(
                 modifier = Modifier.fillMaxWidth(),
                 shape = KrfrCardShape,
                 color = MaterialTheme.colorScheme.surface,
                 border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
                 tonalElevation = 0.dp,
-                shadowElevation = 0.dp
+                shadowElevation = 0.dp,
+                real = false
             ) {
                 Column {
                     Row(
@@ -362,7 +386,7 @@ fun PersonalizeScreen(
             )
 
             if (loadingNames && simCards.isEmpty()) {
-                Surface(
+                GlassSurface(
                     modifier = Modifier.fillMaxWidth(),
                     shape = KrfrCardShape,
                     color = MaterialTheme.colorScheme.surface,
@@ -378,7 +402,7 @@ fun PersonalizeScreen(
                     )
                 }
             } else if (simCards.isEmpty()) {
-                Surface(
+                GlassSurface(
                     modifier = Modifier.fillMaxWidth(),
                     shape = KrfrCardShape,
                     color = MaterialTheme.colorScheme.surface,
@@ -461,9 +485,8 @@ fun PersonalizeScreen(
             onDismiss = { statusMessage = null },
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .navigationBarsPadding()
                 .padding(horizontal = 24.dp)
-                .padding(bottom = 78.dp)
+                .padding(bottom = uiBottomInset(96.dp, 24.dp))
         )
     }
 }
@@ -515,10 +538,25 @@ private fun StyleCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val bg by animateColorAsState(
+        targetValue = if (selected) KrfrAdaptive.linkSoft() else MaterialTheme.colorScheme.surfaceVariant,
+        animationSpec = tween(220),
+        label = "style-card-bg"
+    )
+    val labelColor by animateColorAsState(
+        targetValue = if (selected) KrfrAdaptive.link() else MaterialTheme.colorScheme.onSurface,
+        animationSpec = tween(220),
+        label = "style-card-label"
+    )
+    val swatchScale by animateFloatAsState(
+        targetValue = if (selected) 1.1f else 1f,
+        animationSpec = spring(dampingRatio = 0.6f, stiffness = 500f),
+        label = "style-card-swatch"
+    )
     Column(
         modifier = modifier
             .clip(RoundedCornerShape(14.dp))
-            .background(if (selected) KrfrAdaptive.linkSoft() else MaterialTheme.colorScheme.surfaceVariant)
+            .background(bg)
             .clickablePressScale(onClick = onClick)
             .padding(vertical = 10.dp),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -526,6 +564,7 @@ private fun StyleCard(
         Box(
             modifier = Modifier
                 .size(34.dp)
+                .graphicsLayer { scaleX = swatchScale; scaleY = swatchScale }
                 .clip(CircleShape)
                 .background(color)
         )
@@ -533,7 +572,7 @@ private fun StyleCard(
         Text(
             label,
             style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold),
-            color = if (selected) KrfrAdaptive.link() else MaterialTheme.colorScheme.onSurface,
+            color = labelColor,
             maxLines = 1
         )
     }
@@ -561,11 +600,16 @@ private fun ModeRow(
                 unselectedColor = MaterialTheme.colorScheme.onSurfaceVariant
             )
         )
+        val titleColor by animateColorAsState(
+            targetValue = if (selected) KrfrAdaptive.link() else MaterialTheme.colorScheme.onSurface,
+            animationSpec = tween(220),
+            label = "mode-title"
+        )
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 title,
                 style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold),
-                color = if (selected) KrfrAdaptive.link() else MaterialTheme.colorScheme.onSurface
+                color = titleColor
             )
             Text(
                 description,
@@ -584,13 +628,14 @@ private fun SimNameCard(
     onSave: () -> Unit,
     onReset: () -> Unit
 ) {
-    Surface(
+    GlassSurface(
         modifier = Modifier.fillMaxWidth(),
         shape = KrfrCardShape,
         color = MaterialTheme.colorScheme.surface,
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
         tonalElevation = 0.dp,
-        shadowElevation = 0.dp
+        shadowElevation = 0.dp,
+        real = false
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(
@@ -653,5 +698,260 @@ private fun SimNameCard(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun UiStyleCard(selected: UiStyle, onSelect: (UiStyle) -> Unit) {
+    GlassSurface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = KrfrCardShape,
+        color = MaterialTheme.colorScheme.surface,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+        tonalElevation = 0.dp,
+        shadowElevation = 0.dp
+    ) {
+        Column(modifier = Modifier.fillMaxWidth().padding(14.dp)) {
+            Text(
+                stringResource(R.string.ui_style_title),
+                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold),
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Text(
+                stringResource(R.string.ui_style_desc),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                UiStyleOption(
+                    style = UiStyle.LIQUID_GLASS,
+                    label = stringResource(R.string.ui_style_liquid),
+                    selected = selected == UiStyle.LIQUID_GLASS,
+                    onClick = { onSelect(UiStyle.LIQUID_GLASS) },
+                    modifier = Modifier.weight(1f)
+                )
+                UiStyleOption(
+                    style = UiStyle.NATIVE,
+                    label = stringResource(R.string.ui_style_native),
+                    selected = selected == UiStyle.NATIVE,
+                    onClick = { onSelect(UiStyle.NATIVE) },
+                    modifier = Modifier.weight(1f)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun UiStyleOption(
+    style: UiStyle,
+    label: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val dark = isDarkSurface()
+    val primary = KrfrAdaptive.link()
+    val radius = RoundedCornerShape(16.dp)
+    val borderColor by animateColorAsState(
+        targetValue = if (selected) primary else MaterialTheme.colorScheme.outlineVariant,
+        animationSpec = tween(220),
+        label = "ui-style-border"
+    )
+    val borderWidth by animateDpAsState(
+        targetValue = if (selected) 1.5.dp else 1.dp,
+        animationSpec = tween(220),
+        label = "ui-style-border-width"
+    )
+    val optionBg by animateColorAsState(
+        targetValue = if (selected) primary.copy(alpha = if (dark) 0.16f else 0.09f) else Color.Transparent,
+        animationSpec = tween(220),
+        label = "ui-style-bg"
+    )
+    Column(
+        modifier = modifier
+            .clip(radius)
+            .background(optionBg)
+            .border(
+                width = borderWidth,
+                color = borderColor,
+                shape = radius
+            )
+            .clickablePressScale(onClick = onClick)
+            .padding(7.dp)
+    ) {
+        Box(modifier = Modifier.fillMaxWidth()) {
+            // 预览图单独裁剪，徽标放在裁剪层之外，才不会被圆角切掉
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(74.dp)
+                    .clip(RoundedCornerShape(11.dp))
+            ) {
+                StylePreview(style = style, dark = dark)
+            }
+            if (style == UiStyle.LIQUID_GLASS) {
+                NewBadge(
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .offset(x = 3.dp, y = (-8).dp)
+                )
+            }
+        }
+        Spacer(modifier = Modifier.height(7.dp))
+        Row(
+            modifier = Modifier.padding(start = 3.dp, bottom = 2.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            Text(
+                label,
+                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold),
+                color = if (selected) primary else MaterialTheme.colorScheme.onSurface,
+                maxLines = 1
+            )
+            if (selected) {
+                Icon(
+                    Icons.Rounded.CheckCircle,
+                    contentDescription = null,
+                    tint = primary,
+                    modifier = Modifier.size(13.dp)
+                )
+            }
+        }
+    }
+}
+
+/** 两种风格的小样：玻璃版画悬浮胶囊，原生版画实心导航栏 */
+@Composable
+private fun StylePreview(style: UiStyle, dark: Boolean) {
+    val cardRadius = RoundedCornerShape(6.dp)
+    if (style == UiStyle.LIQUID_GLASS) {
+        Box(
+            Modifier
+                .fillMaxSize()
+                .background(
+                    Brush.verticalGradient(
+                        listOf(
+                            if (dark) Color(0xFF102A4A) else Color(0xFFA9D4FF),
+                            if (dark) Color(0xFF173A63) else Color(0xFF2F7BE8)
+                        )
+                    )
+                )
+        ) {
+            Column(
+                Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 9.dp, vertical = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(5.dp)
+            ) {
+                repeat(2) {
+                    Box(
+                        Modifier
+                            .fillMaxWidth()
+                            .height(15.dp)
+                            .clip(cardRadius)
+                            .background(Color.White.copy(alpha = if (dark) 0.14f else 0.38f))
+                            .border(0.7.dp, Color.White.copy(alpha = if (dark) 0.20f else 0.55f), cardRadius)
+                    )
+                }
+            }
+            Row(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(horizontal = 10.dp)
+                    .padding(bottom = 6.dp)
+                    .fillMaxWidth()
+                    .height(17.dp)
+                    .clip(CircleShape)
+                    .background(Color.White.copy(alpha = if (dark) 0.16f else 0.30f))
+                    .border(0.8.dp, Color.White.copy(alpha = if (dark) 0.45f else 0.80f), CircleShape)
+                    .padding(horizontal = 8.dp),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                repeat(4) {
+                    Box(
+                        Modifier
+                            .size(3.dp)
+                            .clip(CircleShape)
+                            .background(Color.White.copy(alpha = 0.92f))
+                    )
+                }
+            }
+        }
+    } else {
+        Box(
+            Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.surfaceVariant)
+        ) {
+            Column(
+                Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 9.dp, vertical = 8.dp)
+                    .padding(bottom = 20.dp),
+                verticalArrangement = Arrangement.spacedBy(5.dp)
+            ) {
+                repeat(2) {
+                    Box(
+                        Modifier
+                            .fillMaxWidth()
+                            .height(15.dp)
+                            .clip(cardRadius)
+                            .background(MaterialTheme.colorScheme.surface)
+                            .border(0.7.dp, MaterialTheme.colorScheme.outlineVariant, cardRadius)
+                    )
+                }
+            }
+            Row(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .fillMaxWidth()
+                    .height(20.dp)
+                    .background(MaterialTheme.colorScheme.surface)
+                    .padding(horizontal = 10.dp),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                repeat(4) { index ->
+                    Box(
+                        Modifier
+                            .size(if (index == 0) 9.dp else 4.dp)
+                            .clip(if (index == 0) CircleShape else CircleShape)
+                            .background(
+                                if (index == 0) KrfrAdaptive.link().copy(alpha = 0.85f)
+                                else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.45f)
+                            )
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun NewBadge(modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier
+            .shadow(3.dp, CircleShape)
+            .clip(CircleShape)
+            .background(
+                Brush.linearGradient(listOf(Color(0xFF4FA8FF), Color(0xFF0A7AFF)))
+            )
+            .border(1.dp, Color.White.copy(alpha = 0.55f), CircleShape)
+            .padding(horizontal = 7.dp, vertical = 1.5.dp)
+    ) {
+        Text(
+            stringResource(R.string.badge_new),
+            color = Color.White,
+            style = MaterialTheme.typography.labelSmall.copy(
+                fontSize = 9.sp,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 0.2.sp
+            ),
+            maxLines = 1
+        )
     }
 }
