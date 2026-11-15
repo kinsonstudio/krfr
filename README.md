@@ -42,7 +42,7 @@
 | 📡 | **Live SIM Status** | Network type, signal strength, MCC/MNC, country/region, roaming state, masked ICCID for every SIM in real time |
 | ⚡ | **Quick Presets** | 18 common "country code + carrier" combos, apply to any SIM with one tap |
 | 💾 | **Backup & Restore** | Export all override configs as JSON; restore after switching devices or reinstalling |
-| 🎨 | **Personalize** | 4 color themes (dark green / ocean blue / warm orange / rose), light & dark modes, upload your own background image |
+| 🎨 | **Personalize** | **Liquid Glass / Native** interface switch, 4 blue-based color themes, light & dark modes, upload your own background image |
 | 🪪 | **SIM Display Name** | Edit each SIM's display name (status bar card name) with one-tap restore to default |
 | 🌐 | **Trilingual UI** | English / 简体中文 / 繁體中文 — all interface texts localized; auto-matches system language on first launch |
 | 🔄 | **Update Check** | Built-in update checker backed by a fast domestic server (GitHub API as fallback) |

@@ -6,62 +6,115 @@
 <title>krfr · SIM Card MCC/MNC &amp; Carrier Config Tool</title>
 <style>
   :root {
-    --bg: #f5f7f6; --card: #ffffff; --ink: #1f2925; --muted: #5f6f68;
-    --brand: #2F6B5E; --brand2: #8A7A3C; --line: #e3e9e6; --chip: #eef4f1;
+    --brand: #0A7AFF; --brand2: #4FA8FF; --ink: #0B1220; --muted: #5B6B80;
+    --card: rgba(255,255,255,.58); --card-strong: rgba(255,255,255,.76);
+    --line: rgba(255,255,255,.72); --chip: rgba(255,255,255,.42);
+    --shadow: 0 18px 44px rgba(16, 51, 102, .18);
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif; background: var(--bg); color: var(--ink); line-height: 1.7; }
-  .wrap { max-width: 860px; margin: 0 auto; padding: 28px 20px 60px; }
-  header { text-align: center; padding: 30px 0 8px; }
-  header img { width: 88px; border-radius: 18px; box-shadow: 0 8px 24px rgba(20, 32, 28, .18); }
-  h1 { font-size: 40px; margin-top: 14px; letter-spacing: -1px; }
+  html { background: #EAF2FD; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    color: var(--ink); line-height: 1.7; min-height: 100vh;
+    background:
+      radial-gradient(1100px 620px at 8% -6%, #FFFFFF 0%, rgba(255,255,255,0) 60%),
+      radial-gradient(900px 700px at 92% 8%, #9CC8FF 0%, rgba(156,200,255,0) 62%),
+      radial-gradient(900px 900px at 78% 96%, #7FB4FF 0%, rgba(127,180,255,0) 60%),
+      radial-gradient(800px 700px at 10% 92%, #BFE0FF 0%, rgba(191,224,255,0) 65%),
+      linear-gradient(180deg, #F5FAFF 0%, #DDEBFC 52%, #CFE3FB 100%);
+    background-attachment: fixed;
+  }
+  .wrap { max-width: 900px; margin: 0 auto; padding: 34px 20px 70px; }
+  header { text-align: center; padding: 26px 0 6px; }
+  header img.logo { width: 104px; border-radius: 26px; box-shadow: 0 16px 38px rgba(10, 80, 170, .28), 0 0 0 1px rgba(255,255,255,.75) inset; }
+  h1 { font-size: 42px; margin-top: 16px; letter-spacing: -1.2px; }
   .tagline { color: var(--muted); font-size: 15px; margin-top: 6px; }
+  .glass-pill {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 14px;
+    padding: 6px 14px 6px 8px; border-radius: 999px; font-size: 13px; font-weight: 700; color: var(--brand);
+    background: var(--card); border: 1px solid var(--line); backdrop-filter: blur(18px) saturate(170%); -webkit-backdrop-filter: blur(18px) saturate(170%);
+    box-shadow: 0 8px 20px rgba(16,51,102,.12);
+  }
+  .glass-pill .new { background: linear-gradient(180deg, var(--brand2), var(--brand)); color: #fff; font-size: 11px; letter-spacing: .3px; padding: 2px 8px; border-radius: 999px; box-shadow: inset 0 1px 0 rgba(255,255,255,.5); }
   .badges { margin-top: 14px; display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
   .badges img { box-shadow: none; border-radius: 6px; }
   .lang-bar { display: flex; gap: 10px; justify-content: center; align-items: center; margin: 26px 0 6px; flex-wrap: wrap; }
   .lang-bar .lbl { color: var(--muted); font-size: 14px; }
-  .lang-btn { border: 1.5px solid var(--line); background: var(--card); color: var(--brand); padding: 7px 18px; border-radius: 999px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all .18s; }
-  .lang-btn:hover { border-color: var(--brand); }
-  .lang-btn.active { background: var(--brand); color: #fff; border-color: var(--brand); }
-  section { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 26px 28px; margin-top: 18px; }
-  h2 { font-size: 20px; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
-  h2::before { content: ""; width: 5px; height: 20px; background: var(--brand); border-radius: 3px; display: inline-block; }
+  .lang-btn {
+    border: 1px solid var(--line); background: var(--card); color: var(--brand); padding: 8px 20px; border-radius: 999px;
+    font-size: 14px; font-weight: 650; cursor: pointer; transition: all .2s ease;
+    backdrop-filter: blur(16px) saturate(160%); -webkit-backdrop-filter: blur(16px) saturate(160%);
+    box-shadow: 0 8px 18px rgba(16,51,102,.10);
+  }
+  .lang-btn:hover { transform: translateY(-1px); border-color: rgba(10,122,255,.45); }
+  .lang-btn.active { background: linear-gradient(180deg, var(--brand2), var(--brand)); color: #fff; border-color: transparent; box-shadow: 0 10px 24px rgba(10,122,255,.32), inset 0 1px 0 rgba(255,255,255,.45); }
+  section {
+    background: var(--card); border: 1px solid var(--line); border-radius: 24px; padding: 26px 28px; margin-top: 18px;
+    backdrop-filter: blur(24px) saturate(170%); -webkit-backdrop-filter: blur(24px) saturate(170%);
+    box-shadow: var(--shadow), inset 0 1px 0 rgba(255,255,255,.65);
+  }
+  h2 { font-size: 20px; margin-bottom: 14px; display: flex; align-items: center; gap: 9px; }
+  h2::before { content: ""; width: 6px; height: 20px; border-radius: 3px; background: linear-gradient(180deg, var(--brand2), var(--brand)); box-shadow: 0 4px 10px rgba(10,122,255,.35); display: inline-block; }
   .dl-btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 6px; }
-  .dl-btn { display: inline-block; padding: 13px 28px; border-radius: 12px; font-weight: 700; font-size: 15px; text-decoration: none; transition: all .18s; }
-  .dl-btn.primary { background: var(--brand); color: #fff; box-shadow: 0 6px 18px rgba(47, 107, 94, .28); }
-  .dl-btn.ghost { background: var(--card); color: var(--brand); border: 1.5px solid var(--brand); }
+  .dl-btn { display: inline-block; padding: 14px 30px; border-radius: 16px; font-weight: 700; font-size: 15px; text-decoration: none; transition: all .2s ease; }
+  .dl-btn.primary {
+    color: #fff; background: linear-gradient(180deg, #56AEFF 0%, #0A7AFF 62%, #0668DE 100%);
+    border: 1px solid rgba(255,255,255,.42);
+    box-shadow: 0 14px 30px rgba(10,122,255,.34), inset 0 1px 0 rgba(255,255,255,.55), inset 0 -2px 8px rgba(0,44,102,.22);
+  }
+  .dl-btn.ghost { background: var(--card-strong); color: var(--brand); border: 1px solid var(--line); box-shadow: 0 10px 24px rgba(16,51,102,.12), inset 0 1px 0 rgba(255,255,255,.7); }
   .dl-btn:hover { transform: translateY(-2px); }
   .dl-note { text-align: center; color: var(--muted); font-size: 13px; margin-top: 10px; }
   table { width: 100%; border-collapse: collapse; margin-top: 6px; }
-  th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); font-size: 14px; vertical-align: top; }
+  th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid rgba(120,160,210,.22); font-size: 14px; vertical-align: top; }
   th { color: var(--muted); font-weight: 600; width: 90px; white-space: nowrap; }
   tr:last-child td { border-bottom: none; }
-  .phone-shot { display: flex; flex-direction: column; align-items: center; margin: 20px 0 6px; }
-  .phone { width: 260px; border: 9px solid #23262a; border-radius: 40px; padding: 0; position: relative; overflow: hidden; box-shadow: 0 18px 40px rgba(20, 32, 28, .28); background: #000; }
-  .phone-notch { position: absolute; top: 8px; left: 50%; transform: translateX(-50%); width: 90px; height: 20px; background: #23262a; border-radius: 0 0 14px 14px; z-index: 2; }
-  .phone img { width: 100%; display: block; border-radius: 31px; }
-  .shot-caption { text-align: center; color: var(--muted); font-size: 13px; margin-top: 10px; }
+  .phone-shot { display: flex; flex-direction: column; align-items: center; margin: 18px 0 6px; }
+  .phone { width: 264px; border: 9px solid #101722; border-radius: 42px; position: relative; overflow: hidden; background: #000;
+    box-shadow: 0 26px 56px rgba(16,51,102,.32), 0 0 0 1px rgba(255,255,255,.35); }
+  .phone-notch { position: absolute; top: 8px; left: 50%; transform: translateX(-50%); width: 92px; height: 20px; background: #101722; border-radius: 0 0 14px 14px; z-index: 2; }
+  .phone img { width: 100%; display: block; border-radius: 33px; }
+  .shot-caption { text-align: center; color: var(--muted); font-size: 13px; margin-top: 12px; }
   ol, ul { padding-left: 22px; font-size: 14.5px; }
   li { margin: 5px 0; }
-  pre { background: #101614; color: #d7e5de; padding: 16px 18px; border-radius: 12px; overflow-x: auto; font-size: 13px; line-height: 1.6; margin: 10px 0; }
+  pre { background: rgba(11,18,32,.9); color: #d9e8ff; padding: 16px 18px; border-radius: 16px; overflow-x: auto; font-size: 13px; line-height: 1.6; margin: 10px 0; box-shadow: inset 0 1px 0 rgba(255,255,255,.08); }
   code { font-family: "SF Mono", Menlo, Consolas, monospace; }
-  p code, li code { background: var(--chip); color: var(--brand); padding: 1px 6px; border-radius: 5px; font-size: 13px; }
-  .note { background: var(--chip); border-left: 3px solid var(--brand2); border-radius: 0 10px 10px 0; padding: 12px 16px; font-size: 13.5px; color: var(--muted); margin: 12px 0; }
+  p code, li code { background: rgba(10,122,255,.10); color: #0A6AD8; padding: 1px 6px; border-radius: 6px; font-size: 13px; }
+  .note { background: rgba(255,255,255,.5); border-left: 3px solid var(--brand); border-radius: 0 14px 14px 0; padding: 12px 16px; font-size: 13.5px; color: var(--muted); margin: 12px 0; }
   footer { text-align: center; color: var(--muted); font-size: 13px; margin-top: 34px; }
-  .mono { font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 12.5px; line-height: 1.55; white-space: pre; overflow-x: auto; background: #f0f4f2; border-radius: 10px; padding: 14px 16px; }
-  @media (max-width: 600px) { h1 { font-size: 30px; } section { padding: 20px 16px; } }
+  .mono { font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 12.5px; line-height: 1.55; white-space: pre; overflow-x: auto;
+    background: rgba(255,255,255,.5); border-radius: 14px; padding: 14px 16px; border: 1px solid var(--line); }
+  @media (prefers-color-scheme: dark) {
+    html { background: #05080E; }
+    body {
+      color: #E9EFF7;
+      background:
+        radial-gradient(1000px 600px at 10% -8%, #12315A 0%, rgba(18,49,90,0) 62%),
+        radial-gradient(900px 700px at 92% 6%, #1B4F8A 0%, rgba(27,79,138,0) 60%),
+        radial-gradient(900px 900px at 76% 96%, #0E2C55 0%, rgba(14,44,85,0) 62%),
+        linear-gradient(180deg, #060B12 0%, #08111C 55%, #0A1725 100%);
+    }
+    :root { --card: rgba(255,255,255,.07); --card-strong: rgba(255,255,255,.12); --line: rgba(255,255,255,.14); --chip: rgba(255,255,255,.08); --muted: #A5B4C6; --shadow: 0 18px 44px rgba(0,0,0,.45); }
+    .lang-btn { color: #8FC5FF; }
+    .lang-btn.active { color: #fff; }
+    pre { background: rgba(2,8,16,.82); }
+    p code, li code { color: #8FC5FF; background: rgba(10,132,255,.16); }
+    .dl-btn.ghost { color: #8FC5FF; }
+  }
+  @media (max-width: 600px) { h1 { font-size: 32px; } section { padding: 20px 16px; } header img.logo { width: 88px; } }
 </style>
 </head>
 <body>
 <div class="wrap">
 
   <header>
-    <img src="krfr-icon-preview.png" alt="krfr logo">
-    <h1>📶 krfr</h1>
+    <img class="logo" src="krfr-icon-preview.png" alt="krfr logo">
+    <h1>krfr</h1>
+    <div class="glass-pill"><span class="new">New</span> Liquid Glass UI · v2.0.0</div>
     <p class="tagline" data-i18n="tagline">SIM Card MCC/MNC &amp; Carrier Configuration Tool · No Root · Powered by Shizuku</p>
     <div class="badges">
-      <img src="https://img.shields.io/github/v/release/kinsonstudio/krfr?label=Latest&color=2F6B5E" alt="release">
-      <img src="https://img.shields.io/github/downloads/kinsonstudio/krfr/total?label=Downloads&color=8A7A3C" alt="downloads">
+      <img src="https://img.shields.io/github/v/release/kinsonstudio/krfr?label=Latest&color=0A7AFF" alt="release">
+      <img src="https://img.shields.io/github/downloads/kinsonstudio/krfr/total?label=Downloads&color=4FA8FF" alt="downloads">
       <img src="https://img.shields.io/badge/License-Apache--2.0-2F6B5E" alt="license">
       <img src="https://img.shields.io/badge/Platform-Android%208%2B-2F6B5E" alt="platform">
     </div>
@@ -80,7 +133,7 @@
       <a class="dl-btn primary" data-i18n="dl_btn_site" href="https://taiai.asia/krfr.html">🌐 Go to Official Download Page</a>
       <a class="dl-btn ghost" data-i18n="dl_btn_gh" href="https://github.com/kinsonstudio/krfr/releases/latest">🚀 Go to GitHub Releases</a>
     </div>
-    <p class="dl-note" data-i18n="dl_note">Latest version v1.1.0 · Android 8+ · No Root</p>
+    <p class="dl-note" data-i18n="dl_note">Latest version v2.0.0 · Android 8+ · No Root · Liquid Glass</p>
   </section>
 
   <section>
@@ -174,13 +227,13 @@ var I18N = {
     "sec_download": "📥 Download",
     "dl_btn_site": "🌐 Go to Official Download Page",
     "dl_btn_gh": "🚀 Go to GitHub Releases",
-    "dl_note": "Latest version v1.1.0 · Android 8+ · No Root",
+    "dl_note": "Latest version v2.0.0 · Android 8+ · No Root · Liquid Glass",
     "sec_features": "✨ Features",
     "f1_t": "MCC/MNC Override", "f1_d": "Change SIM card country code (MCC/MNC) and carrier name via Shizuku, per-SIM independent override with custom values.",
     "f2_t": "Live SIM Status", "f2_d": "Network type, signal strength, MCC/MNC, country/region, roaming state, masked ICCID for every SIM in real time.",
     "f3_t": "Quick Presets", "f3_d": "18 common \"country code + carrier\" combos, apply to any SIM with one tap.",
     "f4_t": "Backup & Restore", "f4_d": "Export all override configs as JSON; restore after switching devices or reinstalling.",
-    "f5_t": "Personalize", "f5_d": "4 color themes (dark green / ocean blue / warm orange / rose), light & dark modes, upload your own background image.",
+    "f5_t": "Personalize", "f5_d": "Liquid Glass / Native interface switch, 4 blue-based themes, light & dark modes, custom background image.",
     "f6_t": "SIM Display Name", "f6_d": "Edit each SIM's display name (status bar card name) with one-tap restore to default.",
     "f7_t": "Trilingual UI", "f7_d": "English / 简体中文 / 繁體中文 — all interface texts localized; auto-matches system language on first launch.",
     "f8_t": "Update Check", "f8_d": "Built-in update checker backed by a fast domestic server (GitHub API as fallback).",
