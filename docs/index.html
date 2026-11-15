@@ -119,6 +119,51 @@
   .notice { margin-top: 16px; padding: 12px 16px; border-radius: 14px; font-size: 13px; color: var(--ink-soft);
     background: rgba(10,122,255,.07); border-left: 3px solid var(--brand); }
 
+
+  /* ===== 可折叠 + 可搜索的更新日志 ===== */
+  .cl-search {
+    display: flex; align-items: center; gap: 8px; margin: 2px 0 14px; padding: 10px 14px;
+    border-radius: 14px; background: rgba(255,255,255,.55); border: 1px solid var(--line);
+    color: var(--muted); backdrop-filter: blur(14px) saturate(160%); -webkit-backdrop-filter: blur(14px) saturate(160%);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.7);
+  }
+  .cl-search input {
+    flex: 1 1 auto; border: 0; outline: 0; background: transparent; font-size: 14px; color: var(--ink);
+    font-family: inherit; min-width: 0;
+  }
+  .cl-search input::placeholder { color: var(--muted); opacity: .85; }
+  .cl-search input::-webkit-search-cancel-button { display: none; }
+  .cl-search button {
+    border: 0; background: rgba(120,160,210,.18); color: var(--muted); width: 22px; height: 22px; border-radius: 50%;
+    font-size: 15px; line-height: 1; cursor: pointer; display: grid; place-items: center;
+  }
+  .cl-search button:hover { background: rgba(120,160,210,.3); }
+
+  .cl-item { border-bottom: 1px dashed rgba(120,160,210,.35); }
+  .cl-item:last-child { border-bottom: none; }
+  .cl-item > summary {
+    list-style: none; cursor: pointer; padding: 14px 2px; display: flex; align-items: center; gap: 10px;
+    border-radius: 10px; transition: background .15s ease;
+  }
+  .cl-item > summary::-webkit-details-marker { display: none; }
+  .cl-item > summary:hover { background: rgba(10,122,255,.06); }
+  .cl-head .ver { font-weight: 800; font-size: 15px; color: #0A5FC8; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; flex: 1 1 auto; }
+  .cl-head .ver em { font-style: normal; color: var(--muted); font-weight: 400; font-size: 12.5px; }
+  .cl-head .ver .new-badge { background: linear-gradient(180deg, var(--brand2), var(--brand)); color: #fff; font-size: 11px; font-weight: 700; padding: 2px 9px; border-radius: 999px; box-shadow: 0 6px 14px rgba(10,122,255,.32); }
+  .cl-caret {
+    flex: 0 0 auto; width: 9px; height: 9px; margin-right: 4px;
+    border-right: 2px solid var(--brand); border-bottom: 2px solid var(--brand);
+    transform: rotate(45deg) translate(-2px, -2px); transition: transform .2s ease; opacity: .8;
+  }
+  .cl-item[open] > summary .cl-caret { transform: rotate(-135deg) translate(-2px, -2px); }
+  .cl-item ul { margin: 2px 0 14px 18px; color: var(--ink-soft); font-size: 13.5px; }
+  .cl-item ul li { margin: 5px 0; }
+  .cl-empty { color: var(--muted); font-size: 13.5px; padding: 6px 2px 2px; }
+  @media (prefers-color-scheme: dark) {
+    .cl-search { background: rgba(255,255,255,.07); }
+    .cl-head .ver { color: #7FBEFF; }
+  }
+
   footer { text-align: center; color: var(--muted); font-size: 13px; margin: 30px 0 40px; }
   footer a { color: var(--brand); text-decoration: none; font-weight: 650; }
 
@@ -218,32 +263,38 @@
 
   <section>
     <h2 data-i18n="sec_changelog">Changelog</h2>
-    <ul class="changelog">
-      <li>
-        <div class="ver">v2.0.0<em>2026-11-15</em><span class="new-badge" data-i18n="badge_new">Latest</span></div>
+    <div class="cl-search">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.6-3.6"/></svg>
+      <input id="clSearch" type="search" autocomplete="off" data-i18n-ph="cl_search" placeholder="Search versions or keywords…">
+      <button id="clClear" type="button" aria-label="clear" hidden>&times;</button>
+    </div>
+    <p class="cl-empty" id="clEmpty" hidden data-i18n="cl_no_result">No matching entries.</p>
+    <div class="cl-list">
+      <details class="cl-item" open>
+        <summary class="cl-head"><span class="ver">v2.0.0<em>2026-11-15</em><span class="new-badge" data-i18n="badge_new">Latest</span></span><span class="cl-caret" aria-hidden="true"></span></summary>
         <ul>
           <li data-i18n="c200a">New Liquid Glass interface, rebuilt to the official AndroidLiquidGlass structure: the tab bar's selected capsule refracts both page content and the icon layer, with drag-to-switch, press dispersion and RTL support.</li>
           <li data-i18n="c200b">New "Interface style" switch: Liquid Glass (default) or Native Material 3, one tap to change.</li>
           <li data-i18n="c200c">Apple-blue palette, new app icon, smoother theme switching animations, and a redesigned result banner.</li>
           <li data-i18n="c200d">Fixes: floating buttons covered by the tab bar, tab bar turning transparent after switching light/dark, transparent buttons in native style, over-transparent sheets, last row hidden on the SIM status screen.</li>
         </ul>
-      </li>
-      <li>
-        <div class="ver">v1.1.0<em>2026-10-18</em></div>
+      </details>
+      <details class="cl-item">
+        <summary class="cl-head"><span class="ver">v1.1.0<em>2026-10-18</em></span><span class="cl-caret" aria-hidden="true"></span></summary>
         <ul>
           <li data-i18n="c110a">Runtime log now follows the interface language (English / 简体中文 / 繁體中文) — no longer always Simplified Chinese.</li>
         </ul>
-      </li>
-      <li>
-        <div class="ver">v1.0.9<em>2026-10-17</em></div>
+      </details>
+      <details class="cl-item">
+        <summary class="cl-head"><span class="ver">v1.0.9<em>2026-10-17</em></span><span class="cl-caret" aria-hidden="true"></span></summary>
         <ul>
           <li data-i18n="c109a">Fix: editing carrier name (SIM display name) sometimes did not take effect — save failures no longer falsely report "saved"; read-back verification after write; explicit error + runtime log when not applied.</li>
           <li data-i18n="c109b">Improved: after saving/resetting display name, the actual system name is refreshed automatically.</li>
           <li data-i18n="c109c">Fix: adapted to systems without ISub.setDisplayName (Android 16 / OPPO etc.) — multi-channel reflection fallback (HiddenApiBypass / ISubExt).</li>
         </ul>
-      </li>
-      <li>
-        <div class="ver">v1.0.8<em>2026-10-16</em></div>
+      </details>
+      <details class="cl-item">
+        <summary class="cl-head"><span class="ver">v1.0.8<em>2026-10-16</em></span><span class="cl-caret" aria-hidden="true"></span></summary>
         <ul>
           <li data-i18n="c108a">New "Personalize" tab: 4 color themes (dark green / ocean blue / warm orange / rose), light &amp; dark modes, custom background image.</li>
           <li data-i18n="c108b">SIM personalization: edit each SIM's display name (status bar card name), one-tap restore to default.</li>
@@ -251,39 +302,39 @@
           <li data-i18n="c108d">Quick presets, country code list &amp; carrier names all follow the app language.</li>
           <li data-i18n="c108e">Language picker on first launch (after Shizuku grant), auto-matches system language, switchable anytime in Personalize tab.</li>
         </ul>
-      </li>
-      <li>
-        <div class="ver">v1.0.7<em>2026-10-16</em></div>
+      </details>
+      <details class="cl-item">
+        <summary class="cl-head"><span class="ver">v1.0.7<em>2026-10-16</em></span><span class="cl-caret" aria-hidden="true"></span></summary>
         <ul>
           <li data-i18n="c107a">Fix: restored config still showed old overridden carrier name (e.g. 3HK / au by KDDI).</li>
           <li data-i18n="c107b">Carrier name now resolved from real SIM MCC/MNC via Shizuku (46015=China Broadnet, 46002=China Mobile, etc.).</li>
         </ul>
-      </li>
-      <li>
-        <div class="ver">v1.0.4<em>2026-10-15</em></div>
+      </details>
+      <details class="cl-item">
+        <summary class="cl-head"><span class="ver">v1.0.4<em>2026-10-15</em></span><span class="cl-caret" aria-hidden="true"></span></summary>
         <ul>
           <li data-i18n="c104a">Update check now uses a fast domestic server first (GitHub API as fallback).</li>
         </ul>
-      </li>
-      <li>
-        <div class="ver">v1.0.2<em>2026-10-15</em></div>
+      </details>
+      <details class="cl-item">
+        <summary class="cl-head"><span class="ver">v1.0.2<em>2026-10-15</em></span><span class="cl-caret" aria-hidden="true"></span></summary>
         <ul>
           <li data-i18n="c102a">Fix: "covered" misjudgment after config restored — now reads the real system state.</li>
           <li data-i18n="c102b">Fix: empty runtime log after errors — all operation errors are now logged.</li>
           <li data-i18n="c102c">New: one-tap copy / export log as file.</li>
           <li data-i18n="c102d">Page auto-refreshes after restore/save, no stale data.</li>
         </ul>
-      </li>
-      <li>
-        <div class="ver">v1.0.1<em>2026-10-15</em></div>
+      </details>
+      <details class="cl-item">
+        <summary class="cl-head"><span class="ver">v1.0.1<em>2026-10-15</em></span><span class="cl-caret" aria-hidden="true"></span></summary>
         <ul>
           <li data-i18n="c101a">One-tap restore much faster: dual SIM in parallel, removed duplicate blocking sync.</li>
           <li data-i18n="c101b">Save/read speed: service instance cache, timeout protection.</li>
           <li data-i18n="c101c">New: force-clear task for stuck operations.</li>
           <li data-i18n="c101d">Interaction polish: page transitions, button press feedback.</li>
         </ul>
-      </li>
-    </ul>
+      </details>
+    </div>
   </section>
 
   <section>
@@ -336,6 +387,8 @@ var I18N = {
     "f8_t": "No Root · Shizuku",
     "f8_d": "Powered by Shizuku, no root needed, safe and clean.",
     "sec_changelog": "Changelog",
+    "cl_search": "Search versions or keywords…",
+    "cl_no_result": "No matching entries.",
     "badge_new": "Latest",
     "c200a": "New Liquid Glass interface, rebuilt to the official AndroidLiquidGlass structure: the selected capsule refracts both page content and the icon layer, with drag-to-switch, press dispersion and RTL support.",
     "c200b": "New \"Interface style\" switch: Liquid Glass (default) or Native Material 3, one tap to change.",
@@ -399,6 +452,8 @@ var I18N = {
     "f8_t": "免 root · Shizuku",
     "f8_d": "基于 Shizuku 授权，无需 root，安全无残留。",
     "sec_changelog": "更新日志",
+    "cl_search": "搜索版本号或关键词…",
+    "cl_no_result": "没有匹配的更新记录。",
     "badge_new": "最新",
     "c200a": "全新液态玻璃界面，按 AndroidLiquidGlass 官方结构重做：选中胶囊同时折射页面内容与图标层，支持拖动换页、按压色散与 RTL。",
     "c200b": "新增「界面风格」开关：液态玻璃（默认）/ 原生 Material 3，一键切换。",
@@ -462,6 +517,8 @@ var I18N = {
     "f8_t": "免 root · Shizuku",
     "f8_d": "基於 Shizuku 授權，無需 root，安全無殘留。",
     "sec_changelog": "更新日誌",
+    "cl_search": "搜尋版本號或關鍵字…",
+    "cl_no_result": "沒有符合的更新記錄。",
     "badge_new": "最新",
     "c200a": "全新液態玻璃介面，依 AndroidLiquidGlass 官方結構重做：選中膠囊同時折射頁面內容與圖示層，支援拖曳換頁、按壓色散與 RTL。",
     "c200b": "新增「介面風格」開關：液態玻璃（預設）/ 原生 Material 3，一鍵切換。",
@@ -532,5 +589,59 @@ function setLang(lang) {
 applyLang(currentLang());
 </script>
 
+<script>
+  // ===== 更新日志：搜索过滤 + 自动展开 =====
+  (function () {
+    var input = document.getElementById('clSearch');
+    var clearBtn = document.getElementById('clClear');
+    var empty = document.getElementById('clEmpty');
+    if (!input) return;
+    var items = Array.prototype.slice.call(document.querySelectorAll('.cl-item'));
+
+    function applyFilter() {
+      var q = (input.value || '').trim().toLowerCase();
+      var hit = 0;
+      items.forEach(function (el) {
+        var text = el.textContent.toLowerCase();
+        var match = !q || text.indexOf(q) !== -1;
+        el.hidden = !match;
+        if (q) { el.open = match; }
+        if (match) hit++;
+      });
+      if (!q) { items.forEach(function (el, i) { el.open = i === 0; }); }
+      if (empty) empty.hidden = hit !== 0;
+      if (clearBtn) clearBtn.hidden = !q;
+    }
+
+    // 初始：按当前语言设置占位符
+    try {
+      var lang0 = (typeof currentLang === 'function') ? currentLang() : 'en';
+      var dict0 = (window.I18N && I18N[lang0]) || {};
+      if (dict0.cl_search) input.setAttribute('placeholder', dict0.cl_search);
+    } catch (e) {}
+
+    // 支持 ?q=关键词 直接带搜索进来（也可分享链接）
+    try {
+      var q0 = new URLSearchParams(location.search).get('q');
+      if (q0) input.value = q0;
+    } catch (e) {}
+
+    input.addEventListener('input', applyFilter);
+    input.addEventListener('keydown', function (e) { if (e.key === 'Escape') { input.value = ''; applyFilter(); } });
+    if (clearBtn) clearBtn.addEventListener('click', function () { input.value = ''; applyFilter(); input.focus(); });
+    applyFilter();
+
+    // 切换语言后文字会变，重新过滤一次以保持结果正确
+    if (typeof setLang === 'function') {
+      var orig = setLang;
+      window.setLang = function (lang) {
+        orig(lang);
+        var ph = (window.I18N && I18N[lang] && I18N[lang].cl_search) || input.getAttribute('placeholder');
+        input.setAttribute('placeholder', ph);
+        applyFilter();
+      };
+    }
+  })();
+</script>
 </body>
 </html>
