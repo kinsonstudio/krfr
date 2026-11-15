@@ -44,6 +44,9 @@ import androidx.compose.ui.unit.sp
 import com.github.krfr.ui.theme.KrfrAdaptive
 import com.github.krfr.R
 import com.github.krfr.ui.theme.KrfrCardShape
+import com.github.krfr.ui.theme.glassSheen
+import com.github.krfr.ui.theme.isDarkSurface
+import com.github.krfr.ui.theme.liquidGlassPanel
 import com.github.krfr.ui.theme.KrfrPill
 import kotlinx.coroutines.launch
 import com.github.krfr.ui.theme.clickableNoIndication
@@ -60,16 +63,8 @@ fun PageHeader(
         modifier = Modifier
             .fillMaxWidth()
             .padding(top = 12.dp, bottom = 16.dp)
-            .clip(KrfrCardShape)
-            .background(
-                Brush.horizontalGradient(
-                    listOf(
-                        KrfrAdaptive.link(),
-                        KrfrAdaptive.link().copy(alpha = 0.92f),
-                        Color(0xFFB39345)
-                    )
-                )
-            )
+            .liquidGlassPanel(KrfrCardShape, dark = isDarkSurface(), strong = true)
+            .glassSheen(KrfrCardShape, dark = isDarkSurface())
     ) {
         Row(
             modifier = Modifier
@@ -82,14 +77,14 @@ fun PageHeader(
                 modifier = Modifier
                     .size(46.dp)
                     .clip(CircleShape)
-                    .background(Color.White.copy(alpha = 0.18f)),
+                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.16f)),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
                     logoText,
                     style = MaterialTheme.typography.titleLarge.copy(
                         fontWeight = FontWeight.Bold,
-                        color = Color.White
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 )
             }
@@ -99,13 +94,13 @@ fun PageHeader(
                     style = MaterialTheme.typography.headlineSmall.copy(
                         fontWeight = FontWeight.Bold,
                         letterSpacing = (-0.4).sp,
-                        color = Color.White
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 )
                 Text(
                     subtitle,
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color.White.copy(alpha = 0.88f),
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.72f),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -117,7 +112,7 @@ fun PageHeader(
                     modifier = Modifier
                         .size(38.dp)
                         .clip(CircleShape)
-                        .background(Color.White.copy(alpha = 0.16f)),
+                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)),
                     contentAlignment = Alignment.Center
                 ) {
                     IconButton(
@@ -132,7 +127,7 @@ fun PageHeader(
                         Icon(
                             Icons.Default.Refresh,
                             contentDescription = stringResource(R.string.refresh_cd),
-                            tint = Color.White,
+                            tint = MaterialTheme.colorScheme.onSurface,
                             modifier = Modifier
                                 .size(20.dp)
                                 .graphicsLayer { rotationZ = rotation.value }

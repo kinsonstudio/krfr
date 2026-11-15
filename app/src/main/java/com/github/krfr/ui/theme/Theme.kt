@@ -239,7 +239,15 @@ fun KrfrTheme(
         ThemeMode.LIGHT -> false
         ThemeMode.DARK -> true
     }
-    val colorScheme = if (darkTheme) buildDarkScheme(themeStyle) else buildLightScheme(themeStyle)
+    val baseScheme = if (darkTheme) buildDarkScheme(themeStyle) else buildLightScheme(themeStyle)
+    // 液态玻璃：表面半透明，让底层光斑透出；页面背景透明
+    val colorScheme = baseScheme.copy(
+        background = Color.Transparent,
+        surface = baseScheme.surface.copy(alpha = if (darkTheme) 0.56f else 0.74f),
+        surfaceVariant = baseScheme.surfaceVariant.copy(alpha = if (darkTheme) 0.42f else 0.54f),
+        outline = if (darkTheme) Color.White.copy(alpha = 0.22f) else Color.White.copy(alpha = 0.78f),
+        outlineVariant = if (darkTheme) Color.White.copy(alpha = 0.14f) else Color.White.copy(alpha = 0.62f)
+    )
     MaterialTheme(
         colorScheme = colorScheme,
         typography = KrfrTypography,

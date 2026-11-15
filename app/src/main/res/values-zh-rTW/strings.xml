@@ -171,10 +171,10 @@
     <string name="style_rose_pink">玫紅</string>
     <string name="style_sunset_orange">暖橙</string>
     <string name="tab_config">配置</string>
-    <string name="tab_personalize">個性化</string>
-    <string name="tab_quick">快捷方案</string>
-    <string name="tab_settings">設置</string>
-    <string name="tab_status">SIM 狀態</string>
+    <string name="tab_personalize">個性</string>
+    <string name="tab_quick">快捷</string>
+    <string name="tab_settings">設定</string>
+    <string name="tab_status">狀態</string>
     <string name="tap_to_check">點擊檢查</string>
     <string name="tap_to_select">點擊選擇</string>
     <string name="theme_dark">深色</string>

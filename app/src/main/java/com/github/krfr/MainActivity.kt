@@ -23,6 +23,10 @@ import com.github.krfr.ui.screens.ShizukuBlockReason
 import com.github.krfr.ui.screens.ShizukuNotReadyScreen
 import com.github.krfr.ui.screens.resolveShizukuBlockReason
 import com.github.krfr.ui.theme.KrfrTheme
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.ui.Modifier
+import com.github.krfr.ui.theme.LiquidGlassBackground
+import com.github.krfr.ui.theme.isDarkSurface
 import com.github.krfr.ui.theme.ThemeMode
 import com.github.krfr.ui.theme.ThemeStyle
 import org.lsposed.hiddenapibypass.HiddenApiBypass
@@ -95,6 +99,14 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             KrfrTheme(themeMode = themeMode, themeStyle = themeStyle) {
+                val darkSurface = isDarkSurface()
+                if (showAbout || !isShizukuReady || appLang == null) {
+                    androidx.compose.foundation.layout.Box(
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        LiquidGlassBackground(style = themeStyle, dark = darkSurface)
+                    }
+                }
                 if (showAbout) {
                     AboutScreen(onBack = { showAbout = false })
                 } else if (!isShizukuReady) {

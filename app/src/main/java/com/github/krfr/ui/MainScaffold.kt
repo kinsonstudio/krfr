@@ -13,6 +13,9 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -29,9 +32,6 @@ import androidx.compose.material.icons.outlined.SimCard
 import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -50,6 +50,10 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.github.krfr.ui.theme.LiquidGlassBackground
+import com.github.krfr.ui.theme.isDarkSurface
+import com.kyant.backdrop.backdrops.layerBackdrop
+import com.kyant.backdrop.backdrops.rememberLayerBackdrop
 import com.github.krfr.R
 import com.github.krfr.ui.screens.ConfigScreen
 import com.github.krfr.ui.screens.PersonalizeScreen
@@ -87,75 +91,49 @@ fun MainScaffold(
     onShowAbout: () -> Unit
 ) {
     var selectedTab by rememberSaveable { mutableStateOf(MainTab.CONFIG) }
-    val darkBg = MaterialTheme.colorScheme.background.luminance() < 0.5f
+    val darkBg = isDarkSurface()
 
     val bgBitmap = remember(backgroundPath) {
         backgroundPath?.let { decodeSampledBitmap(it) }
     }
 
+    val bgBackdrop = rememberLayerBackdrop()
+
     Box(modifier = Modifier.fillMaxSize()) {
-        if (bgBitmap != null) {
-            Image(
-                bitmap = bgBitmap.asImageBitmap(),
-                contentDescription = null,
-                modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Crop,
-                alpha = if (darkBg) 0.32f else 0.55f
-            )
-            if (darkBg) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(Color.Black.copy(alpha = 0.5f))
+        // 背景层：静态流体光斑（只绘制一次），同时录成 backdrop 供 Tab 栏磨砂用
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .layerBackdrop(bgBackdrop)
+        ) {
+            LiquidGlassBackground(style = themeStyle, dark = darkBg)
+            if (bgBitmap != null) {
+                Image(
+                    bitmap = bgBitmap.asImageBitmap(),
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop,
+                    alpha = if (darkBg) 0.28f else 0.42f
                 )
+                if (darkBg) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color.Black.copy(alpha = 0.42f))
+                    )
+                }
             }
         }
 
         Scaffold(
             modifier = Modifier.fillMaxSize(),
-            containerColor = if (bgBitmap != null) Color.Transparent else MaterialTheme.colorScheme.background,
+            containerColor = Color.Transparent,
             bottomBar = {
-                NavigationBar(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    tonalElevation = 0.dp,
-                    modifier = Modifier.padding(bottom = 0.dp)
-                ) {
-                    MainTab.entries.forEach { tab ->
-                        val selected = selectedTab == tab
-                        val iconScale by animateFloatAsState(
-                            targetValue = if (selected) 1.08f else 0.88f,
-                            animationSpec = tween(220),
-                            label = "tab-icon-scale"
-                        )
-                        NavigationBarItem(
-                            selected = selected,
-                            onClick = { selectedTab = tab },
-                            icon = {
-                                Box(
-                                    modifier = Modifier.scale(iconScale)
-                                ) {
-                                    Icon(
-                                        imageVector = if (selected) tab.selectedIcon else tab.unselectedIcon,
-                                        contentDescription = stringResource(tab.labelRes)
-                                    )
-                                }
-                            },
-                            label = {
-                                Text(
-                                    stringResource(tab.labelRes),
-                                    fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal
-                                )
-                            },
-                            colors = NavigationBarItemDefaults.colors(
-                                selectedIconColor = KrfrAdaptive.link(),
-                                selectedTextColor = KrfrAdaptive.link(),
-                                indicatorColor = KrfrAdaptive.linkSoft(),
-                                unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                                unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        )
-                    }
-                }
+                LiquidBottomBar(
+                    selected = selectedTab,
+                    onSelect = { selectedTab = it },
+                    backdrop = bgBackdrop
+                )
             }
         ) { innerPadding ->
             Box(
@@ -163,6 +141,18 @@ fun MainScaffold(
                     .fillMaxSize()
                     .padding(innerPadding)
             ) {
+                // 顶部横向柔光：增强玻璃光泽层次（静态，零成本）
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(180.dp)
+                        .background(
+                            Brush.verticalGradient(
+                                0f to if (darkBg) Color.White.copy(alpha = 0.06f) else Color.White.copy(alpha = 0.22f),
+                                1f to Color.Transparent
+                            )
+                        )
+                )
                 AnimatedContent(
                     targetState = selectedTab,
                     transitionSpec = {
