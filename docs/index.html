@@ -120,6 +120,64 @@
     background: rgba(10,122,255,.07); border-left: 3px solid var(--brand); }
 
 
+
+  /* ===== 演示视频 ===== */
+  .demo-card {
+    margin-top: 18px; padding: 22px 22px 18px; border-radius: 26px;
+    background: var(--card-strong); border: 1px solid var(--line);
+    backdrop-filter: blur(26px) saturate(175%); -webkit-backdrop-filter: blur(26px) saturate(175%);
+    box-shadow: var(--shadow), inset 0 1px 0 rgba(255,255,255,.8);
+  }
+  .demo-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+  .demo-head h2 { margin-bottom: 0; }
+  .demo-dur {
+    font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 12px; color: #fff; letter-spacing: .5px;
+    padding: 3px 10px; border-radius: 999px; background: linear-gradient(180deg, var(--brand2), var(--brand));
+    box-shadow: 0 6px 14px rgba(10,122,255,.3), inset 0 1px 0 rgba(255,255,255,.5);
+  }
+  .demo-frame {
+    position: relative; aspect-ratio: 16 / 9; border-radius: 20px; overflow: hidden;
+    background: #0A1220; border: 1px solid rgba(255,255,255,.5);
+    box-shadow: 0 18px 40px rgba(16,51,102,.26), inset 0 0 0 1px rgba(255,255,255,.18);
+  }
+  .demo-video { display: block; width: 100%; height: 100%; object-fit: cover; background: #0A1220; }
+  .demo-play {
+    position: absolute; inset: 0; width: 100%; height: 100%; border: 0; cursor: pointer;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
+    background: linear-gradient(180deg, rgba(4,14,30,.10) 0%, rgba(4,14,30,.42) 100%);
+    color: #fff; font-family: inherit; transition: opacity .28s ease, backdrop-filter .28s ease;
+  }
+  .demo-play:hover { background: linear-gradient(180deg, rgba(4,14,30,.04) 0%, rgba(4,14,30,.34) 100%); }
+  .demo-play-circle {
+    width: 76px; height: 76px; border-radius: 50%; display: grid; place-items: center; position: relative;
+    background: rgba(255,255,255,.22); border: 1px solid rgba(255,255,255,.6);
+    backdrop-filter: blur(14px) saturate(180%); -webkit-backdrop-filter: blur(14px) saturate(180%);
+    box-shadow: 0 14px 32px rgba(3,20,45,.42), inset 0 1px 0 rgba(255,255,255,.8);
+    transition: transform .2s ease, background .2s ease;
+  }
+  .demo-play:hover .demo-play-circle { transform: scale(1.06); background: rgba(255,255,255,.3); }
+  .demo-play-tri {
+    width: 0; height: 0; margin-left: 5px;
+    border-top: 12px solid transparent; border-bottom: 12px solid transparent; border-left: 19px solid #fff;
+    filter: drop-shadow(0 2px 6px rgba(0,0,0,.35));
+  }
+  .demo-play-text {
+    font-size: 13.5px; font-weight: 700; padding: 7px 16px; border-radius: 999px;
+    background: rgba(6,20,40,.34); border: 1px solid rgba(255,255,255,.38);
+    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    text-shadow: 0 1px 3px rgba(0,0,0,.35);
+  }
+  .demo-play.is-hidden { opacity: 0; pointer-events: none; }
+  .demo-caption { text-align: center; color: var(--muted); font-size: 13px; margin-top: 12px; }
+  @media (prefers-color-scheme: dark) {
+    .demo-frame { border-color: rgba(255,255,255,.16); }
+  }
+  @media (max-width: 620px) {
+    .demo-card { padding: 18px 14px 14px; }
+    .demo-play-circle { width: 62px; height: 62px; }
+    .demo-play-tri { border-top-width: 10px; border-bottom-width: 10px; border-left-width: 16px; }
+  }
+
   /* ===== 可折叠 + 可搜索的更新日志 ===== */
   .cl-search {
     display: flex; align-items: center; gap: 8px; margin: 2px 0 14px; padding: 10px 14px;
@@ -239,6 +297,22 @@
       <span data-i18n="dl_note2">(may be slower in some regions).</span>
     </div>
   </div>
+
+  <section class="demo-card" id="demo">
+    <div class="demo-head">
+      <h2 data-i18n="sec_demo">Watch the demo</h2>
+      <span class="demo-dur">00:28</span>
+    </div>
+    <div class="demo-frame" id="demoFrame">
+      <video id="demoVideo" class="demo-video" src="krfr-demo.mp4" poster="krfr-demo-poster.jpg"
+             playsinline preload="none" data-i18n-aria="demo_alt" aria-label="krfr 2.0 demo video"></video>
+      <button class="demo-play" id="demoPlay" type="button" aria-label="Play demo video">
+        <span class="demo-play-circle"><span class="demo-play-tri"></span></span>
+        <span class="demo-play-text" data-i18n="demo_play">Play demo · 28s</span>
+      </button>
+    </div>
+    <p class="demo-caption" data-i18n="demo_caption">A 28-second walkthrough of krfr 2.0 — Liquid Glass interface, per-SIM override, live SIM status and quick presets.</p>
+  </section>
 
   <div class="phone-shot">
     <div class="phone">
@@ -387,6 +461,10 @@ var I18N = {
     "f8_t": "No Root · Shizuku",
     "f8_d": "Powered by Shizuku, no root needed, safe and clean.",
     "sec_changelog": "Changelog",
+    "sec_demo": "Watch the demo",
+    "demo_play": "Play demo · 28s",
+    "demo_caption": "A 28-second walkthrough of krfr 2.0 — Liquid Glass interface, per-SIM override, live SIM status and quick presets.",
+    "demo_alt": "krfr 2.0 demo video",
     "cl_search": "Search versions or keywords…",
     "cl_no_result": "No matching entries.",
     "badge_new": "Latest",
@@ -452,6 +530,10 @@ var I18N = {
     "f8_t": "免 root · Shizuku",
     "f8_d": "基于 Shizuku 授权，无需 root，安全无残留。",
     "sec_changelog": "更新日志",
+    "sec_demo": "演示视频",
+    "demo_play": "观看演示 · 28 秒",
+    "demo_caption": "28 秒看完 krfr 2.0：液态玻璃界面、单卡独立覆盖、实时 SIM 状态与快捷方案。",
+    "demo_alt": "krfr 2.0 演示视频",
     "cl_search": "搜索版本号或关键词…",
     "cl_no_result": "没有匹配的更新记录。",
     "badge_new": "最新",
@@ -517,6 +599,10 @@ var I18N = {
     "f8_t": "免 root · Shizuku",
     "f8_d": "基於 Shizuku 授權，無需 root，安全無殘留。",
     "sec_changelog": "更新日誌",
+    "sec_demo": "示範影片",
+    "demo_play": "觀看示範 · 28 秒",
+    "demo_caption": "28 秒看完 krfr 2.0：液態玻璃介面、單卡獨立覆寫、即時 SIM 狀態與快捷方案。",
+    "demo_alt": "krfr 2.0 示範影片",
     "cl_search": "搜尋版本號或關鍵字…",
     "cl_no_result": "沒有符合的更新記錄。",
     "badge_new": "最新",
@@ -641,6 +727,26 @@ applyLang(currentLang());
         applyFilter();
       };
     }
+  })();
+</script>
+<script>
+  // ===== 演示视频：封面上的玻璃播放键 =====
+  (function () {
+    var frame = document.getElementById('demoFrame');
+    var video = document.getElementById('demoVideo');
+    var btn = document.getElementById('demoPlay');
+    if (!frame || !video || !btn) return;
+
+    function hideOverlay() { btn.classList.add('is-hidden'); }
+    function showOverlay() { btn.classList.remove('is-hidden'); }
+
+    btn.addEventListener('click', function () {
+      hideOverlay();
+      video.setAttribute('controls', '');
+      video.play().catch(function () { showOverlay(); });
+    });
+    video.addEventListener('pause', function () { if (!video.ended && video.currentTime === 0) showOverlay(); });
+    video.addEventListener('ended', function () { showOverlay(); video.currentTime = 0; });
   })();
 </script>
 </body>
